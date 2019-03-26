@@ -1,0 +1,96 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "actionGroupId": {
+            "type": "string",
+            "metadata": {
+                "description": "Action group resource Id"
+            }
+        },
+        "logAnalyticsResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The Log Analytics resourceId to be referenced for the Alert."
+            }
+        },
+        "logAnalyticsWorkspaceLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The Log Analytics Workspace location."
+            }
+        }
+    },
+    "variables": {
+        "hiddenLinkTag": "[json( concat( '{\"hidden-link:', parameters('logAnalyticsResourceId'), '\": \"Resource\"}' ) )]",
+        "alertCopy": {
+            "alertDetails": [
+                {
+                    "alertName": "KeyVaultAlert",
+                    "alertDescription": "Alert that triggers when OperationName == SecretGet",
+                    "query": "AzureDiagnostics | where OperationName == 'SecretGet' | where ResultType == 'Success' | where trustedService_s != 'AzureResourceManager/Deployment'",
+                    "frequencyInMinutes": 5,
+                    "timeWindowInMinutes": 5,
+                    "emailSubject": "Someone is fishing in our KeyVault..",
+                    "tresholdOperator": "GreaterThan",
+                    "threshold": 0,
+                    "severity": 0
+                },
+                {
+                    "alertName": "templateValidation",
+                    "alertDescription": "Alert that triggers when a template validation fails",
+                    "query": "AzureActivity | where ActivityStatus == 'Failed' | where OperationName == 'Validate Deployment'",
+                    "frequencyInMinutes": 5,
+                    "timeWindowInMinutes": 5,
+                    "emailSubject": "Someone is submitting a bad template",
+                    "tresholdOperator": "GreaterThan",
+                    "threshold": 0,
+                    "severity": 1
+                }
+            ]
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/scheduledQueryRules",
+            "name": "[variables('alertCopy').alertDetails[copyIndex()].alertName]",
+            "apiVersion": "2018-04-16",
+            "location": "[parameters( 'logAnalyticsWorkspaceLocation' )]",
+            "tags": "[variables('hiddenLinkTag')]",
+            "copy": {
+                "count": "[length(variables('alertCopy').alertDetails)]",
+                "name": "alertCopy"
+            },
+            "properties": {
+                "description": "[variables('alertCopy').alertDetails[copyIndex()].alertDescription]",
+                "enabled": "true",
+                "source": {
+                    "query": "[variables('alertCopy').alertDetails[copyIndex()].query]",
+                    "dataSourceId": "[parameters('logAnalyticsResourceId')]",
+                    "queryType": "ResultCount"
+                },
+                "schedule": {
+                    "frequencyInMinutes": "[variables('alertCopy').alertDetails[copyIndex()].frequencyInMinutes]",
+                    "timeWindowInMinutes": "[variables('alertCopy').alertDetails[copyIndex()].timeWindowInMinutes]"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction",
+                    "severity": "[variables('alertCopy').alertDetails[copyIndex()].severity]",
+                    "throttlingInMin": 0,
+                    "aznsAction": {
+                        "actionGroup": [
+                            "[parameters('actionGroupId')]"
+                        ],
+                        "emailSubject": "[variables('alertCopy').alertDetails[copyIndex()].emailSubject]",
+                        "customWebhookPayload": "{}"
+                    },
+                    "trigger": {
+                        "thresholdOperator": "[variables('alertCopy').alertDetails[copyIndex()].tresholdOperator]",
+                        "threshold": "[variables('alertCopy').alertDetails[copyIndex()].threshold]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,70 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "securitySettings": {
+            "type": "string",
+            "allowedValues": [
+                "On",
+                "Off"
+            ],
+            "metadata": {
+                "description": "Turn security settings On or Off."
+            }
+        },
+        "emailContact": {
+            "type": "string",
+            "defaultValue": "john@doe.com",
+            "metadata": {
+                "description": "Add one or more e-mail addresses for notificatoins."
+            }
+        },
+        "securityPhoneNumber": {
+            "type": "string",
+            "metadata": {
+                "description": "Add a phone number for security related incidents."
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Security/policies",
+            "apiVersion": "2015-06-01-preview",
+            "name": "default",
+            "properties": {
+                "policyLevel": "Subscription",
+                "name": "default",
+                "unique": "Off",
+                "logCollection": "Off",
+                "recommendations": {
+                    "patch": "[parameters('securitySettings')]",
+                    "baseline": "[parameters('securitySettings')]",
+                    "antimalware": "[parameters('securitySettings')]",
+                    "diskEncryption": "[parameters('securitySettings')]",
+                    "acls": "[parameters('securitySettings')]",
+                    "nsgs": "[parameters('securitySettings')]",
+                    "waf": "[parameters('securitySettings')]",
+                    "sqlAuditing": "[parameters('securitySettings')]",
+                    "sqlTde": "[parameters('securitySettings')]",
+                    "ngfw": "[parameters('securitySettings')]",
+                    "vulnerabilityAssessment": "[parameters('securitySettings')]",
+                    "storageEncryption": "[parameters('securitySettings')]",
+                    "jitNetworkAccess": "[parameters('securitySettings')]"
+                },
+                "securityContactConfiguration": {
+                    "securityContactEmails": [
+                        "[parameters('emailContact')]"
+                    ],
+                    "securityContactPhone": "[parameters('securityPhoneNumber')]",
+                    "areNotificationsOn": true,
+                    "sendToAdminOn": false
+                },
+                "pricingConfiguration": {
+                    "selectedPricingTier": "Free"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
