@@ -1,0 +1,78 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "policyInitiativeName": {
+            "type": "string"
+        },
+        "deniedLocation": {
+            "type": "string"
+        },
+        "deniedResource": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2018-03-01",
+            "name": "deniedLocation",
+            "properties": {
+                "policyType": "Custom",
+                "mode": "All",
+                "parameters": {},
+                "policyRule": {
+                    "if": {
+                        "field": "location",
+                        "equals": "[parameters('deniedLocation')]"
+                    },
+                    "then": {
+                        "effect": "deny"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2018-03-01",
+            "name": "deniedResource",
+            "properties": {
+                "policyType": "Custom",
+                "mode": "All",
+                "parameters": {},
+                "policyRule": {
+                    "if": {
+                        "field": "type",
+                        "equals": "[parameters('deniedResource')]"
+                    },
+                    "then": {
+                        "effect": "Audit"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policySetDefinitions/",
+            "apiVersion": "2018-03-01",
+            "name": "[parameters('policyInitiativeName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Authorization/policyDefinitions/', 'deniedResource')]",
+                "[resourceId('Microsoft.Authorization/policyDefinitions/', 'deniedLocation')]"
+            ],
+            "properties": {
+                "displayName": "Restrictive Policy Initiative",
+                "description": "Policy initiative which will deny regions and resource type",
+                "policyDefinitions": [
+                    {
+                        "policyDefinitionId": "[resourceId('Microsoft.Authorization/policyDefinitions/', 'deniedResource')]"
+                    },
+                    {
+                        "policyDefinitionId": "[resourceId('Microsoft.Authorization/policyDefinitions/', 'deniedLocation')]"
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

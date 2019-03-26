@@ -1,0 +1,28 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "customerWorkspace": {
+            "type": "string"
+        },
+        "customerRg": {
+            "type": "string"
+        },
+        "customerSub": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        
+    ],
+    "outputs": {
+    "reference()": {
+            "value": "[reference(concat('/subscriptions/', parameters('customerSub'), '/resourceGroups/', parameters('customerRg'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('customerWorkspace')), '2015-11-01-preview').customerId]",
+            "type": "string"
+        },
+        "listKeys()": {
+            "value": "[listKeys(concat('/subscriptions/', parameters('customerSub'), '/resourceGroups/', parameters('customerRg'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('customerWorkspace')), '2015-11-01-preview').primarySharedKey]",
+            "type": "string"
+        }
+    }
+}

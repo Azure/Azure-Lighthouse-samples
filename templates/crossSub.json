@@ -1,0 +1,67 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "storagePrefix1": {
+            "type": "string",
+            "defaultValue": "st01"
+        },
+        "storagePrefix2": {
+            "type": "string",
+            "defaultValue": "st02"
+        },
+        "remoteRg": {
+            "type": "string"
+        },
+        "remoteSub": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "storage1": "[concat(parameters('storagePrefix1'), uniquestring('01'))]",
+        "storage2": "[concat(parameters('storagePrefix2'), uniquestring('02'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2017-06-01",
+            "name": "[variables('storage1')]",
+            "location": "[resourceGroup().location]",
+            "kind": "Storage",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "remoteSubscription",
+            "resourceGroup": "[parameters('remoteRg')]",
+            "subscriptionId": "[parameters('remoteSub')]",            
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Storage/storageAccounts",
+                            "apiVersion": "2017-06-01",
+                            "name": "[variables('storage2')]",
+                            "location": "[resourceGroup().location]",
+                            "kind": "Storage",
+                            "sku": {
+                                "name": "Standard_LRS"
+                            }
+                        }
+                    ],
+                    "outputs": {}
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
