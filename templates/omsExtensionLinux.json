@@ -1,0 +1,41 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "logAnalytics": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('vmName'),'/omsOnboarding')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('location')]",
+            "apiVersion": "2017-03-30",
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "OmsAgentForLinux",
+                "typeHandlerVersion": "1.4",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[reference(parameters('logAnalytics'), '2015-11-01-preview').customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(parameters('logAnalytics'), '2015-11-01-preview').primarySharedKey]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "mgmtStatus": {
+            "type": "string",
+            "value": "[concat('Enabled monitoring for Linux VM', ': ', parameters('vmName'))]"
+        }
+    }
+}

@@ -1,0 +1,477 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string"
+        },
+        "automationAccountName": {
+            "type": "string"
+        },
+        "rgLocation": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Portal/dashboards",
+            "apiVersion": "2015-08-01-preview",
+            "name": "mspControlCenterPreview",
+            "location": "[parameters('rgLocation')]",
+            "tags": {
+                "hidden-title": "MSP Control Center Preview"
+            },
+            "properties": {
+                "lenses": {
+                    "0": {
+                        "order": 0,
+                        "parts": {
+                            "0": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 0,
+                                    "colSpan": 4,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/HubsExtension/PartType/MarkdownPart",
+                                    "settings": {
+                                        "content": {
+                                            "settings": {
+                                                "content": "# Monitoring & Security",
+                                                "title": "",
+                                                "subtitle": ""
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "1": {
+                                "position": {
+                                    "x": 4,
+                                    "y": 0,
+                                    "colSpan": 4,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/HubsExtension/PartType/MarkdownPart",
+                                    "settings": {
+                                        "content": {
+                                            "settings": {
+                                                "content": "# Automation & Configuration\n",
+                                                "title": "",
+                                                "subtitle": ""
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "2": {
+                                "position": {
+                                    "x": 8,
+                                    "y": 0,
+                                    "colSpan": 4,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/HubsExtension/PartType/MarkdownPart",
+                                    "settings": {
+                                        "content": {
+                                            "settings": {
+                                                "content": "# Management Overview",
+                                                "title": "",
+                                                "subtitle": ""
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "3": {
+                                "position": {
+                                    "x": 12,
+                                    "y": 0,
+                                    "colSpan": 2,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/HubsExtension/PartType/MarkdownPart",
+                                    "settings": {
+                                        "content": {
+                                            "settings": {
+                                                "content": "# Customers",
+                                                "title": "",
+                                                "subtitle": ""
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "4": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 1,
+                                    "colSpan": 2,
+                                    "rowSpan": 2
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "id",
+                                            "value": "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
+                                        }
+                                    ],
+                                    "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/WorkspacePart",
+                                    "asset": {
+                                        "idInputName": "id",
+                                        "type": "Workspace"
+                                    },
+                                    "defaultMenuItemId": "Overview"
+                                }
+                            },
+                            "5": {
+                                "position": {
+                                    "x": 2,
+                                    "y": 1,
+                                    "colSpan": 2,
+                                    "rowSpan": 2
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/AnalyticsPart",
+                                    "defaultMenuItemId": "logs"
+                                }
+                            },
+                            "7": {
+                                "position": {
+                                    "x": 6,
+                                    "y": 1,
+                                    "colSpan": 2,
+                                    "rowSpan": 2
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "id",
+                                            "value": "[resourceId('Microsoft.Automation/automationAccounts/', parameters('automationAccountName'))]"
+                                        }
+                                    ],
+                                    "type": "Extension/Microsoft_Azure_Automation/PartType/AccountDashboardBladePinnedPart",
+                                    "defaultMenuItemId": "overview"
+                                }
+                            },
+                            "8": {
+                                "position": {
+                                    "x": 8,
+                                    "y": 1,
+                                    "colSpan": 4,
+                                    "rowSpan": 2
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "tagName",
+                                            "value": "ManagedByMsp",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "tagKey",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "tagValue",
+                                            "value": "Yes"
+                                        }
+                                    ],
+                                    "type": "Extension/HubsExtension/PartType/ResourcesWithTagBladePinnedPart"
+                                }
+                            },
+                            "9": {
+                                "position": {
+                                    "x": 12,
+                                    "y": 1,
+                                    "colSpan": 2,
+                                    "rowSpan": 2
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/Microsoft_Azure_Billing/PartType/SubscriptionsBladePinnedPart"
+                                }
+                            },
+                            "10": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 3,
+                                    "colSpan": 4,
+                                    "rowSpan": 3
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "queryInputs",
+                                            "value": {
+                                                "subscriptions": "[subscription().id]",
+                                                "regions": "",
+                                                "services": "",
+                                                "resourceGroupId": "all",
+                                                "timeSpan": "5",
+                                                "startTime": "2018-06-23T12:30:36.897Z",
+                                                "endTime": "2018-06-26T12:30:36.897Z",
+                                                "queryName": "WW",
+                                                "queryId": "55839c4b-d749-4b1c-b862-d7c94fdcd3d9",
+                                                "loadFromCache": false,
+                                                "communicationType": "incident",
+                                                "statusFilter": "active"
+                                            }
+                                        }
+                                    ],
+                                    "type": "Extension/Microsoft_Azure_Health/PartType/ServiceIssuesTilePart"
+                                }
+                            },
+                            "11": {
+                                "position": {
+                                    "x": 4,
+                                    "y": 3,
+                                    "colSpan": 4,
+                                    "rowSpan": 2
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/HubsExtension/PartType/ArmExplorerStartPart"
+                                }
+                            },
+                            "12": {
+                                "position": {
+                                    "x": 8,
+                                    "y": 3,
+                                    "colSpan": 4,
+                                    "rowSpan": 2
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "resourceType",
+                                            "value": "Microsoft.Compute/VirtualMachines",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "filter",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "scope",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "kind",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/HubsExtension/PartType/BrowseBaseResourcesPinnedPart"
+                                }
+                            },
+                            "13": {
+                                "position": {
+                                    "x": 12,
+                                    "y": 3,
+                                    "colSpan": 2,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/Microsoft_Azure_CustomerHub/PartType/MyCustomersPart",
+                                    "defaultMenuItemId": "customers"
+                                }
+                            },
+                            "14": {
+                                "position": {
+                                    "x": 4,
+                                    "y": 5,
+                                    "colSpan": 4,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/HubsExtension/PartType/MarkdownPart",
+                                    "settings": {
+                                        "content": {
+                                            "settings": {
+                                                "content": "[![Launch Cloud Shell](https://shell.azure.com/images/launchcloudshell.png \"Launch Cloud Shell\")](https://shell.azure.com)",
+                                                "title": "",
+                                                "subtitle": ""
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "15": {
+                                "position": {
+                                    "x": 8,
+                                    "y": 5,
+                                    "colSpan": 4,
+                                    "rowSpan": 2
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "workspaceId",
+                                            "value": "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "automationAccountResourceId",
+                                            "value": "",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "virtualMachineResourceId",
+                                            "value": "",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "virtualMachineUniqueId",
+                                            "value": "",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "osType",
+                                            "value": "",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "virtualMachineImageReference",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "virtualMachineSupplementalInformation",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/Microsoft_Azure_Automation/PartType/MultiVMUpdateManagementBladePinnedPart"
+                                }
+                            },
+                            "16": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 6,
+                                    "colSpan": 2,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "queryInputs",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/Microsoft_Azure_Monitoring/PartType/DiagnosticsLogsBladePinnedPart",
+                                    "defaultMenuItemId": "diagnosticsLogs"
+                                }
+                            },
+                            "17": {
+                                "position": {
+                                    "x": 2,
+                                    "y": 6,
+                                    "colSpan": 2,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "queryInputs",
+                                            "value": null,
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "targetResourceIds",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "options",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/Microsoft_Azure_Monitoring/PartType/AlertsSummaryPart",
+                                    "defaultMenuItemId": "alerts"
+                                }
+                            },
+                            "18": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 7,
+                                    "colSpan": 2,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "inferredBladePinPartInputs.menuIdToOpen",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "inferredBladePinPartInputs.subscriptionId",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/Microsoft_Azure_Security/PartType/InferredBladePinPartSecurityMenuBlade",
+                                    "defaultMenuItemId": "0"
+                                }
+                            },
+                            "19": {
+                                "position": {
+                                    "x": 2,
+                                    "y": 7,
+                                    "colSpan": 2,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [],
+                                    "type": "Extension/Microsoft_Azure_Expert/PartType/AzureAdvisorPart"
+                                }
+                            },
+                            "20": {
+                                "position": {
+                                    "x": 2,
+                                    "y": 8,
+                                    "colSpan": 2,
+                                    "rowSpan": 1
+                                },
+                                "metadata": {
+                                    "inputs": [
+                                        {
+                                            "name": "ResourceId",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "TimeContext",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "ChartDefinition",
+                                            "isOptional": true
+                                        },
+                                        {
+                                            "name": "Version",
+                                            "value": "1.0"
+                                        },
+                                        {
+                                            "name": "AppDefinition",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/Microsoft_Azure_Monitoring/PartType/MetricsBladeV3PinnedPart",
+                                    "defaultMenuItemId": "appInsightsMetrics"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

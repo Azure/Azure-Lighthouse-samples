@@ -1,0 +1,37 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mspName": {
+            "value": "Fabrikam Managed Services - Interstellar"
+        },
+	"rgName": {
+		"value": "Test313"
+	},
+        "mspOfferDescription": {
+            "value": "Fabrikam Managed Services - Interstellar"
+        },
+        "managedByTenantId": {
+            "value": "d6ad82f3-42af-4a15-ac1e-49e6c08f624e"
+        },
+            "publisherName": {
+            "value": "Fabrikam"
+        },
+        "authorizations": {
+            "value": [
+                {
+                    "principalId": "a762c9f6-88aa-4340-b775-44b8151afe00",
+                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+                },
+                {
+                    "principalId": "81fc7fbc-0969-48fa-9427-e19b8b70a52e",
+                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+                },
+                {
+                    "principalId": "a762c9f6-88aa-4340-b775-44b8151afe00",
+                    "roleDefinitionId": "36243c78-bf99-498c-9df9-86d9f8d28608"
+                }
+            ]
+        }
+    }
+}

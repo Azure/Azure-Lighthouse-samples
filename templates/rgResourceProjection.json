@@ -1,0 +1,103 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mspName": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the Managed Service Provider name"
+            }
+        },
+        "mspOfferDescription": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Managed Service Provider offering"
+            }
+        },
+        "publisherName": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the Azure Marketplace publisher name of the Managed Service Provider"
+            }
+        },
+        "managedByTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the tenant id of the Managed Service Provider"
+            }
+        },
+        "authorizations": {
+            "type": "array",
+            "metadata": {
+                "description": "Specify the MSP principalId's to rolDefinitionId's mapping in an array of objects"
+            }
+        },
+        "rgName": {
+            "type": "string"
+        }              
+    },
+    "variables": {
+        "mspRegistrationName": "[guid(parameters('mspName'))]",
+        "mspAssignmentName": "[guid(parameters('mspName'))]",
+        "planName": "[parameters('mspName')]",
+        "product": "[concat('marketplace-test','|', parameters('mspName'),'|',variables('version'), '|', 'preview','|',variables('version'))]",
+        "publisher": "[parameters('publisherName')]",
+        "version": "1.0.0"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ManagedServices/registrationDefinitions",
+            "apiVersion": "2018-06-01-preview",
+            "name": "[variables('mspRegistrationName')]",
+            "properties": {
+                "registrationDefinitionName": "[parameters('mspName')]",
+                "description": "[parameters('mspOfferDescription')]",
+                "managedByTenantId": "[parameters('managedByTenantId')]",
+                "authorizations": "[parameters('authorizations')]"
+            },
+            "plan": {
+                "name": "[variables('planName')]",
+                "product": "[variables('product')]",
+                "publisher": "[variables('publisher')]",
+                "version": "[variables('version')]"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "rgAssignment",
+            "resourceGroup": "[parameters('rgName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+            ],
+            "properties":{
+                "mode":"Incremental",
+                "template":{
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.ManagedServices/registrationAssignments",
+                            "apiVersion": "2018-06-01-preview",
+                            "name": "[guid('rg')]",
+                            "properties": {
+                                "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "mspName": {
+            "type": "string",
+            "value": "[concat('Managed by', ' ', parameters('mspName'))]"
+        },
+        "authorizations": {
+            "type": "array",
+            "value": "[parameters('authorizations')]"
+        }
+    }
+}
