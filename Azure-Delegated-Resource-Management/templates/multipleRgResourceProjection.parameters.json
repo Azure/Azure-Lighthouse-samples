@@ -5,9 +5,6 @@
         "mspName": {
             "value": "Fabrikam Managed Services - Interstellar"
         },
-        "rgName": {
-            "value": "Test313"
-        },
         "mspOfferDescription": {
             "value": "Fabrikam Managed Services - Interstellar"
         },
@@ -30,6 +27,19 @@
                 {
                     "principalId": "a762c9f6-88aa-4340-b775-44b8151afe00",
                     "roleDefinitionId": "36243c78-bf99-498c-9df9-86d9f8d28608"
+                }
+            ]
+        },
+        "resourceGroups": {
+            "value": [
+                {
+                    "rgName": "cosmos-webtier"
+                },
+                {
+                    "rgName": "cosmos-datatier"
+                },
+                {
+                    "rgName": "test313"
                 }
             ]
         }
