@@ -22,10 +22,6 @@
                     "roleDefinitionId": "36243c78-bf99-498c-9df9-86d9f8d28608"
                 },
                 {
-                    "principalId": "a762c9f6-88aa-4340-b775-44b8151afe00",
-                    "roleDefinitionId": "36243c78-bf99-498c-9df9-86d9f8d28608"
-                },
-                {
                     "principalId": "0afd8497-7bff-4873-a7ff-b19a6b7b332c",
                     "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7"
                 },
