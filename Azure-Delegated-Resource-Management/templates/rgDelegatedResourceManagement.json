@@ -14,12 +14,6 @@
                 "description": "Name of the Managed Service Provider offering"
             }
         },
-        "publisherName": {
-            "type": "string",
-            "metadata": {
-                "description": "Specify the Azure Marketplace publisher name of the Managed Service Provider"
-            }
-        },
         "managedByTenantId": {
             "type": "string",
             "metadata": {
@@ -38,11 +32,7 @@
     },
     "variables": {
         "mspRegistrationName": "[guid(parameters('mspName'))]",
-        "mspAssignmentName": "[guid(parameters('mspName'))]",
-        "planName": "[parameters('mspName')]",
-        "product": "[concat('marketplace-test','|', parameters('mspName'),'|',variables('version'), '|', 'preview','|',variables('version'))]",
-        "publisher": "[parameters('publisherName')]",
-        "version": "1.0.0"
+        "mspAssignmentName": "[guid(parameters('mspName'))]"
     },
     "resources": [
         {
@@ -54,12 +44,6 @@
                 "description": "[parameters('mspOfferDescription')]",
                 "managedByTenantId": "[parameters('managedByTenantId')]",
                 "authorizations": "[parameters('authorizations')]"
-            },
-            "plan": {
-                "name": "[variables('planName')]",
-                "product": "[variables('product')]",
-                "publisher": "[variables('publisher')]",
-                "version": "[variables('version')]"
             }
         },
         {
@@ -80,7 +64,7 @@
                         {
                             "type": "Microsoft.ManagedServices/registrationAssignments",
                             "apiVersion": "2018-06-01-preview",
-                            "name": "[guid('rg')]",
+                            "name": "[variables('mspAssignmentName')]",
                             "properties": {
                                 "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
                             }
