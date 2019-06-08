@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 1.01
 
 .GUID e0962947-bf3c-4ed4-be3b-39cb7f6348c6
 
@@ -26,17 +26,8 @@ https://github.com/Azure/azure-policy/tree/master/samples/Monitoring
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-April 29, 2019 Initial
-   Special thanks to John Kemnetz @jkemnetz (https://twitter.com/jkemnetz) for his initial project 
-   here that I based some of my array logic off of for generation of JSON: https://github.com/johnkemnetz/azmon-onboarding/tree/master/policies
-
-   Thanks to Tao Yang @MrTaoYang (https://twitter.com/MrTaoYang) for his collaboration initially and his 
-   hard work he has done here: https://blog.tyang.org/2018/11/19/configuring-azure-resources-diagnostic-log-settings-using-azure-policy/
-   that he has created to support our community in this space!
-
-   And thank you Nick Kiest from the Azure Monitor Product Team for supporting the project from their side seeing value in the effort!
-
-   Finally Kristian Nese @KristianNese (https://twitter.com/KristianNese) from AzureCAT for his direct support on feedback as I navigated this effort and for him providing technical expertize in this space.
+June 06, 2019 1.01   
+    Updated a parameter for Event Hub name causing issues with configuration of Diagnostic Settings   
 #>
 
 <#  
@@ -99,9 +90,10 @@ April 29, 2019 Initial
 
 .NOTES
    AUTHOR: Microsoft Log Analytics Team / Jim Britt Senior Program Manager - Azure CAT 
-   LASTEDIT: April 29, 2019
+   LASTEDIT: June 06, 2019
+   Updated a parameter for Event Hub name causing issues with configuration of Diagnostic Settings
 
-April 29, 2019 Initial
+   April 29, 2019 Initial
    Special thanks to John Kemnetz @jkemnetz (https://twitter.com/jkemnetz) for his initial project 
    here that I based some of my array logic off of: https://github.com/johnkemnetz/azmon-onboarding/tree/master/policies
 
@@ -599,7 +591,7 @@ $JSONRULES = @'
                             },
                             {
                                 "field": "Microsoft.Insights/diagnosticSettings/eventHubName",
-                                "equals": "[parameters('eventHubName')]"
+                                "equals": "[last(split(parameters('eventHubName'), '/'))]"
                             }
                         ]
                     },
@@ -644,7 +636,7 @@ $JSONRULES = @'
                                         "location": "[parameters('location')]",
                                         "dependsOn": [],
                                         "properties": {
-                                            "eventHubName": "[parameters('eventHubName')]",
+                                            "eventHubName": "[last(split(parameters('eventHubName'), '/'))]",
                                             "eventHubAuthorizationRuleId": "[parameters('eventHubRuleId')]",<METRICS ARRAY><LOGS ARRAY>
                                         }
                                     }
