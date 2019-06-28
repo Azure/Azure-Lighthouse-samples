@@ -87,7 +87,7 @@
         },
         {
             "type": "Microsoft.ManagedServices/registrationAssignments",
-            "apiVersion": "2018-06-01-preview",
+            "apiVersion": "2018-06-01",
             "name": "[variables('mspAssignmentName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
