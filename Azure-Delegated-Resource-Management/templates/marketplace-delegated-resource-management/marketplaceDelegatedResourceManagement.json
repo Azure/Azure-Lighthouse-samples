@@ -75,7 +75,7 @@
     "resources": [
         {
             "type": "Microsoft.ManagedServices/registrationDefinitions",
-            "apiVersion": "2018-06-01-preview",
+            "apiVersion": "2019-06-01",
             "name": "[variables('mspRegistrationName')]",
             "properties": {
                 "registrationDefinitionName": "[parameters('mspName')]",
