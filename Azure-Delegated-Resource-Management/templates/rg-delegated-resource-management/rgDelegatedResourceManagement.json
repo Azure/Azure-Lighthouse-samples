@@ -23,7 +23,7 @@
         "authorizations": {
             "type": "array",
             "metadata": {
-                "description": "Specify the MSP principalId's to rolDefinitionId's mapping in an array of objects"
+                "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
             }
         },
         "rgName": {
@@ -37,7 +37,7 @@
     "resources": [
         {
             "type": "Microsoft.ManagedServices/registrationDefinitions",
-            "apiVersion": "2018-06-01-preview",
+            "apiVersion": "2019-06-01",
             "name": "[variables('mspRegistrationName')]",
             "properties": {
                 "registrationDefinitionName": "[parameters('mspName')]",
@@ -63,7 +63,7 @@
                     "resources": [
                         {
                             "type": "Microsoft.ManagedServices/registrationAssignments",
-                            "apiVersion": "2018-06-01-preview",
+                            "apiVersion": "2019-06-01",
                             "name": "[variables('mspAssignmentName')]",
                             "properties": {
                                 "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"

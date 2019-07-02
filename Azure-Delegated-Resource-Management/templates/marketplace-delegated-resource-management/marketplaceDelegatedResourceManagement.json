@@ -23,7 +23,7 @@
         "authorizations": {
             "type": "array",
             "metadata": {
-                "description": "Specify an array of objects, containing pairs of Azure Active Directory principalIds and corresponding Azure roleDefinitionId. The roleDefinition specified is granted to the principalId in the provider's Active Directory."
+                "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
             }
         },
         "marketplaceOffer": {
@@ -75,7 +75,7 @@
     "resources": [
         {
             "type": "Microsoft.ManagedServices/registrationDefinitions",
-            "apiVersion": "2018-06-01-preview",
+            "apiVersion": "2019-06-01",
             "name": "[variables('mspRegistrationName')]",
             "properties": {
                 "registrationDefinitionName": "[parameters('mspName')]",
@@ -87,7 +87,7 @@
         },
         {
             "type": "Microsoft.ManagedServices/registrationAssignments",
-            "apiVersion": "2018-06-01-preview",
+            "apiVersion": "2019-06-01",
             "name": "[variables('mspAssignmentName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"

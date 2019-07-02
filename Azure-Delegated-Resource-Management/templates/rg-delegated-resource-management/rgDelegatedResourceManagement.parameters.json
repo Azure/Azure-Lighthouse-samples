@@ -18,15 +18,18 @@
             "value": [
                 {
                     "principalId": "0019bcfb-6d35-48c1-a491-a701cf73b419",
-                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+                    "principalIdDisplayName": "Tier 1 Support"
                 },
                 {
                     "principalId": "0afd8497-7bff-4873-a7ff-b19a6b7b332c",
-                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+                    "principalIdDisplayName": "Tier 2 Support"
                 },
                 {
                     "principalId": "2622a696-47e9-454b-bb60-3afc3cf1bed5",
-                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+                    "principalIdDisplayName": "Automation Service Principal"
                 }
             ]
         }
