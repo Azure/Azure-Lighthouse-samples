@@ -1,0 +1,195 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logAnalytics": {
+            "type": "string"
+        },
+        "rbacGuid": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
+        }
+    },
+    "variables": {
+        "policyDefinition": "Enforce-Monitoring-KeyVault",
+        "policyAssignment": "Enforce-Monitoring-KeyVault-Assignment",
+        "rbacContributor": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2018-05-01",
+            "name": "[variables('policyDefinition')]",
+            "properties":{
+                "description": "Enforce monitoring of KeyVaults to Log Analytics",
+                "displayName": "Enforce Monitoring of KeyVaults",
+                "mode":"All",
+                "parameters": {
+                    "logAnalytics": {
+                        "type": "string",
+                        "metadata": {
+                            "displayName": "Log Analytics workspace",
+                            "description": "Select the Log Analytics workspace from dropdown list",
+                            "strongType": "omsWorkspace"
+                        }
+                    }
+                },
+                "policyRule": {
+                    "if": {
+                        "field": "type",
+                        "equals": "Microsoft.KeyVault/vaults"
+                    },
+                    "then": {
+                        "effect": "deployIfNotExists",
+                        "details": {
+                            "type": "Microsoft.Insights/diagnosticSettings",
+                            "roleDefinitionIds": [
+                                "[concat('/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c', variables('rbacContributor'))]"
+                            ],
+                            "existenceCondition": {
+                                "allOf": [
+                                    {
+                                        "field": "Microsoft.Insights/diagnosticSettings/logs.enabled",
+                                        "equals": "true"
+                                    },
+                                    {
+                                        "field": "Microsoft.Insights/diagnosticSettings/metrics.enabled",
+                                        "equals": "true"
+                                    },
+                                    {
+                                        "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
+                                        "equals": "[[parameters('logAnalytics')]"
+                                    }
+                                ]
+                            },
+                            "deployment": {
+                                "properties": {
+                                    "mode": "incremental",
+                                    "parameters": {
+                                        "logAnalytics": {
+                                            "value": "[[parameters('logAnalytics')]"
+                                        },
+                                        "location": {
+                                            "value": "[[field('location')]"
+                                        },
+                                        "vaultName": {
+                                            "value": "[[field('name')]"
+                                        }
+                                    },
+                                    "template": {
+                                        "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                        "contentVersion": "1.0.0.0",
+                                        "parameters": {
+                                            "vaultName": {
+                                                "type": "string"
+                                            },
+                                            "logAnalytics": {
+                                                "type": "string"
+                                            },
+                                            "location": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "variables": {},
+                                        "resources": [
+                                            {
+                                                "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
+                                                "apiVersion": "2017-05-01-preview",
+                                                "name": "[[concat(parameters('vaultName'), '/', 'Microsoft.Insights/setByPolicy')]",
+                                                "location": "[[parameters('location')]",
+                                                "dependsOn": [],
+                                                "properties": {
+                                                    "workspaceId": "[[parameters('logAnalytics')]",
+                                                    "metrics": [
+                                                        {
+                                                            "category": "AllMetrics",
+                                                            "enabled": true,
+                                                            "retentionPolicy": {
+                                                                "enabled": false,
+                                                                "days": 0
+                                                            }
+                                                        }
+                                                    ],
+                                                    "logs": [
+                                                        {
+                                                            "category": "AuditEvent",
+                                                            "enabled": true
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ],
+                                        "outputs": {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2018-05-01",
+            "name": "[variables('policyAssignment')]",
+            "location": "[deployment().location]",
+            "dependsOn": [
+                "[variables('policyDefinition')]"
+            ],
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "description": "[variables('policyAssignment')]",
+                "displayName": "[variables('policyAssignment')]",
+                "policyDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/policyDefinitions/', variables('policyDefinition'))]",
+                "scope": "[subscription().id]",
+                "parameters": {
+                    "logAnalytics": {
+                        "value": "[toLower(parameters('logAnalytics'))]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "location": "[deployment().location]",
+            "name": "[concat('builtInDelay', copyIndex())]",
+            "dependsOn": [
+                "[variables('policyAssignment')]"
+            ],
+            "copy": {
+                "name": "builtInDelayCopy",
+                "count": 5,
+                "mode": "Serial",
+                "batchSize": 1
+            },
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [],
+                    "outputs": {}
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2019-04-01-preview",
+            "name": "[parameters('rbacGuid')]",
+            "dependsOn": [
+                "builtInDelayCopy",
+                "[variables('policyAssignment')]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacContributor'))]",
+                "delegatedManagedIdentityResourceId": "[concat(subscription().id, '/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignment'))]",
+                "principalId": "[toLower(reference(concat('/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignment')), '2018-05-01', 'Full' ).identity.principalId)]"
+            }
+        }
+    ]
+}
