@@ -1,0 +1,9 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logAnalytics": {
+            "value": "/subscriptions/74903176-3e4e-492d-9d18-9afab69a0cf8/resourceGroups/azuremgmt/providers/Microsoft.OperationalInsights/workspaces/workspace100"
+        }
+    }
+}
