@@ -1,4 +1,11 @@
 
+# Microsoft Azure Lighthouse
+
+Azure Lighthouse provides capabilities for partners to perform cross customer management at scale.  We do this by providing you the ability to view and manage multiple customers from a single context. When you log into Azure, you can see all of your customers who are using Azure Lighthouse. [Learn more](https://azure.com/lighthouse).
+
+This repository contains samples to help you use Azure Resource Manager to configure [Azure delegated resource management](https://docs.microsoft.com/azure/lighthouse/concepts/azure-delegated-resource-management) and to configure monitoring and management of customer environments.
+
+
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
