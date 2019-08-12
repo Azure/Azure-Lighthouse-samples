@@ -1,0 +1,34 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {
+        "policyDefinitionName": "Audit-Delegation-assignments-def",
+        "policyAssignmentName": "Audit-Delegation-assignments"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "name": "[variables('policyDefinitionName')]",
+            "apiVersion": "2018-05-01",
+            "properties":{
+                "description": "Audit subscription delegation.",
+                "displayName": "Audit subscription delegation.",
+                "mode":"All",
+                "policyRule": {
+                    "if": {
+                        "allOf": [
+                            {
+                                "field": "type",
+                                "equals": "Microsoft.ManagedServices/registrationAssignments"
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "audit"
+                    }
+                }
+            }
+        }
+    ]
+}
