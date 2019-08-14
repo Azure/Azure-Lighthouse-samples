@@ -1,0 +1,97 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logAnalyticsResourceId": {
+            "defaultValue": "/subscriptions/be69f302-c88c-4c82-9ecd-f914ea0ad184/resourceGroups/oms/providers/Microsoft.OperationalInsights/workspaces/OMSASRKN",
+            "type": "string",
+            "metadata": {
+                "description": "The Log Analytics Workspace resourceId to be referenced for the Alert."
+            }
+        },
+        "logAnalyticsWorkspaceLocation": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "The Log Analytics Workspace location."
+            }
+        },
+        "actionGroupNameOrId": {
+            "type": "string",
+            "defaultValue": "geneva",
+            "metadata": {
+                "description": "Specify a name of a new action group, or the resourceId to an existing one."
+            }
+        },
+        "emailAddress": {
+            "type": "string",
+            "defaultValue": "kristian.nese@microsoft.com",
+            "metadata": {
+                "description": "If new actionGroup, specify emails. If not, leave empty"
+            }
+        }
+    },
+    "variables": {
+        "hiddenLinkTag": "[json( concat( '{\"hidden-link:', parameters('logAnalyticsResourceId'), '\": \"Resource\"}' ) )]"
+    },
+    "resources": [
+        {
+            "condition": "[not(contains(parameters('actionGroupNameOrId'), '/'))]",
+            "type": "Microsoft.Insights/actionGroups",
+            "apiVersion": "2018-03-01",
+            "name": "[if(contains(parameters('actionGroupNameOrId'), '/'), last(split(parameters('actionGroupNameOrId'), '/')), parameters('actionGroupNameOrId'))]",
+            "location": "global",
+            "properties":{
+                "groupShortName": "[take(parameters('actionGroupNameOrId'), 12)]",
+                "enabled": true,
+                "emailReceivers":[
+                    {
+                        "name": "[first(split(parameters('emailAddress'), '@'))]",
+                        "emailAddress": "[parameters('emailAddress')]"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Insights/scheduledQueryRules",
+            "name": "armDelegation",
+            "apiVersion": "2018-04-16",
+            "location": "[parameters( 'logAnalyticsWorkspaceLocation' )]",
+            "tags": "[variables('hiddenLinkTag')]",
+            "dependsOn": [
+
+            ],
+            "properties": {
+                "description": "Notifies when someone successfully has retrieved secrets from KeyVault.",
+                "enabled": "true",
+                "source": {
+                    "query": "AzureActivity | where OperationName == 'Add Managed Services Registration Assignment' and ActivityStatusValue == 'Succeeded' | project Caller, SubscriptionId, Authorization",
+                    "dataSourceId": "[parameters('logAnalyticsResourceId')]",
+                    "queryType": "ResultCount"
+                },
+                "schedule": {
+                    "frequencyInMinutes": 5,
+                    "timeWindowInMinutes": 5
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction",
+                    "severity": "0",
+                    "throttlingInMin": 0,
+                    "aznsAction": {
+                        "actionGroup": [
+                            "[if(contains(parameters('actionGroupNameOrId'), '/'), parameters('actionGroupNameOrId'), resourceId('Microsoft.Insights/actionGroups/', parameters('actionGroupNameOrId')))]"
+                        ],
+                        "emailSubject": "Azure Delegated Resource Management",
+                        "customWebhookPayload": "{}"
+                    },
+                    "trigger": {
+                        "thresholdOperator": "GreaterThan",
+                        "threshold": 0
+                    }
+                }
+            }
+        }           
+    ],
+    "outputs": {
+    }
+}
