@@ -12,7 +12,7 @@
             "value": "Fabrikam Managed Services - Interstellar"
         },
         "managedByTenantId": {
-            "value": "df4602a3-920c-435f-98c4-49ff031b9ef6"
+            "value": "<insert managing tenant id>"
         },
         "authorizations": {
             "value": [
