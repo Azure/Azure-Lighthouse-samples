@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 1.01
+.VERSION 1.2
 
 .GUID e0962947-bf3c-4ed4-be3b-39cb7f6348c6
 
@@ -15,7 +15,7 @@
 .LICENSEURI 
 
 .PROJECTURI 
-https://github.com/Azure/azure-policy/tree/master/samples/Monitoring
+https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 
 .ICONURI 
 
@@ -26,8 +26,12 @@ https://github.com/Azure/azure-policy/tree/master/samples/Monitoring
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-June 06, 2019 1.01   
-    Updated a parameter for Event Hub name causing issues with configuration of Diagnostic Settings   
+August 21, 2019 1.2   
+    - Improved efficiency for skipping invalid resources on analysis
+    - Added Tenant to bypass subscription listing and go against all subs in current AD tenant
+    - Added LogPolicyOnly switch to only export Azure Policies for resources that support Logs (metrics bypassed)
+    - Special thanks to Dimitri Lider (Microsoft) for his contributions to the 2nd and 3rd bullet above
+      Thank you for providing feedback!  
 #>
 
 <#  
@@ -38,8 +42,8 @@ June 06, 2019 1.01
   
 .DESCRIPTION  
   This script takes a SubscriptionID, ResourceType, ResourceGroup as parameters, analyzes the subscription or
-  specific ResourceGroup defined for the resources specified in $Resources, and builds a custom policy for diagnostic metrics/logs
-  for Event Hubs and Log Analytics as sink points for selected resource types.
+  specific ResourceGroup defined for the resources specified in $Resources, and builds a custom policy for 
+  diagnostic metrics/logs for Event Hubs and Log Analytics as sink points for selected resource types.
 
 .PARAMETER SubscriptionId
     The subscriptionID of the Azure Subscription that contains the resources you want to analyze
@@ -69,6 +73,13 @@ June 06, 2019 1.01
     If specified will do a post export validation recursively against the export directory or will validate JSONs recursively in current script
     directory and subfolders or exportdirectory (if specified).
 
+ .PARAMETER Tenant
+    Use the -Tenant parameter to bypass the subscriptionID requirement
+    Note: Cannot use in conjunction with -SubscriptionID
+
+.PARAMETER -LogPolicyOnly
+    This the -LogPolicyOnly parameter to export Azure Policies for resourceTypes that support Logs (bypass those that only support Metrics)
+
 .EXAMPLE
   .\Create-AzDiagPolicy.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ResourceType "Microsoft.Sql/servers/databases" -ResourceGroup "RGName" -ExportLA -ExportEH
   Take in parameters and execute silently without prompting against the scope of a resourceType, Resource Group, with a specified subscriptionID as scope
@@ -88,9 +99,29 @@ June 06, 2019 1.01
   Will leverage the specified export directory (relative to current working directory of PS console or specify fully qualified directory)
   and will validate all JSON files to ensure they have no syntax errors
 
+.EXAMPLE
+.\Create-AzDiagPolicy.ps1 -ExportAll -ExportEH -ExportLA -ValidateJSON -Tenant -ExportDir ".\LogPolicies"
+  Will leverage the specified export directory (relative to current working directory of PS console or specify fully qualified directory)
+  and will validate all JSON files to ensure they have no syntax errors.  This example also provides the ability to go against the
+  entire Azure AD Tenant as opposed to a single subscription
+
+.EXAMPLE
+.\Create-AzDiagPolicy.ps1 -LogPolicyOnly -ExportAll -ExportEH -ExportLA -ValidateJSON -Tenant -ExportDir ".\LogPolicies"
+  Will leverage the specified export directory (relative to current working directory of PS console or specify fully qualified directory)
+  and will validate all JSON files to ensure they have no syntax errors.  This example also provides the ability to go against the
+  entire Azure AD Tenant as opposed to a single subscription.  Exports Log Policies (metric check is bypassed)
+
+
 .NOTES
-   AUTHOR: Microsoft Log Analytics Team / Jim Britt Senior Program Manager - Azure CAT 
-   LASTEDIT: June 06, 2019
+   AUTHOR: Microsoft Log Analytics Team / Jim Britt Senior Program Manager - Azure CXP API (Azure Product Improvement) 
+   LASTEDIT: August 21, 2019 1.2   
+    - Improved efficiency for skipping invalid resources on analysis
+    - Added Tenant to bypass subscription listing and go against all subs in current AD tenant
+    - Added LogPolicyOnly switch to only export Azure Policies for resources that support Logs (metrics bypassed)
+    - Special thanks to Dimitri Lider (Microsoft) for his contributions to the 2nd and 3rd bullet above
+      Thank you for providing feedback Dimitri!
+   
+   June 06, 2019
    Updated a parameter for Event Hub name causing issues with configuration of Diagnostic Settings
 
    April 29, 2019 Initial
@@ -145,17 +176,31 @@ param
 
     # Export Directory Path for Artifacts - if not set - will default to script directory
     [Parameter(Mandatory=$False)]
-    [string]$ExportDir
+    [string]$ExportDir,
+
+    # When switch is used, only Azure Policies to capture logs will be exported (metric only resources bypassed)
+    [switch]$LogPolicyOnly=$False,
+
+    # Tenant switch to bypass subscriptionId requirement
+    [switch]$Tenant=$False
+
 )
 # FUNCTIONS
 # Get the ResourceType listing from all ResourceTypes capable in this subscription
 # to be sent to log analytics - use "-ResourceType" param to bypass
 function Get-ResourceType (
     [Parameter(Mandatory=$True)]
-    [array]$allResources
+    [array]$allResources,
+    [Parameter(Mandatory=$False)]
+    [array]$analysis
+
     )
 {
-    $analysis = @()
+    If(!($analysis))
+    {
+        $analysis = @()
+    }
+    
     $GetScanDetails = @{
         Headers = @{
             Authorization = "Bearer $($token.AccessToken)"
@@ -172,9 +217,9 @@ function Get-ResourceType (
         $logs = $false #initialize logs flag to $false
         
         #Establish URI to gather resources
-        $URI = "https://management.azure.com/$($Resource.ResourceId)/providers/microsoft.insights/diagnosticSettingsCategories/?api-version=2017-05-01-preview"
+        $URI = "https://management.azure.com$($Resource.ResourceId)/providers/microsoft.insights/diagnosticSettingsCategories/?api-version=2017-05-01-preview"
         
-        if (! $analysis.where({$_.ResourceType -eq $resource.ResourceType}))
+        if ($analysis.resourceType -notcontains $resource.ResourceType)
         {
             try
             {
@@ -188,38 +233,47 @@ function Get-ResourceType (
                     # Uncomment below to see actual error.  Certain resources are not ResourceTypes that can support Logs and Metrics so the host error is being muted
                     #write-host $Error[0] -ForegroundColor Red
                     $Invalid = $True
+                    $Logs = $False
+                    $Metrics = $False
+                    $ResponseJSON = ''
                 }
-                $ResponseJSON = $Status.Content|ConvertFrom-Json
+                if(!($Invalid))
+                {
+                    $ResponseJSON = $Status.Content|ConvertFrom-Json -ErrorAction SilentlyContinue
+                }
                 
                 # If logs are supported or metrics on each resource, set value as $True
-                foreach($R in $ResponseJSON.value)
-                {
-                    if($R.properties.categoryType -eq "Metrics")
+                If($ResponseJSON)
+                {                
+                    foreach($R in $ResponseJSON.value)
                     {
-                        $metrics = $true
-                    }
-                    if($R.properties.categoryType -eq "Logs")
-                    {
-                        $Logs = $true
-                        $Categories += $r.name
+                        if($R.properties.categoryType -eq "Metrics")
+                        {
+                            $metrics = $true
+                        }
+                        if($R.properties.categoryType -eq "Logs")
+                        {
+                            $Logs = $true
+                            $Categories += $r.name
+                        }
                     }
                 }
-                
             }
             catch {}
             finally
             {
-                if(!($Invalid))
-                {
-                    $object = New-Object -TypeName PSObject -Property @{'ResourceType' = $resource.ResourceType; 'Metrics' = $metrics; 'Logs' = $logs; 'Categories' = $Categories}
-                    $analysis += $object
-                }
+                $object = New-Object -TypeName PSObject -Property @{'ResourceType' = $resource.ResourceType; 'Metrics' = $metrics; 'Logs' = $logs; 'Categories' = $Categories}
+                $analysis += $object
             }
         }
     }
     # Return the list of supported resources
-    $object = New-Object -TypeName PSObject -Property @{'ResourceType' = "All"; 'Metrics' = "True"; 'Logs' = "True"; 'Categories' = "Various"}
-    $analysis += $object
+    # Add the "ALL" option to the tail of the analysis array if we are only going against one subscription
+    if($SubscriptionId)
+    {
+        $object = New-Object -TypeName PSObject -Property @{'ResourceType' = "All"; 'Metrics' = "True"; 'Logs' = "True"; 'Categories' = "Various"}
+        $analysis += $object
+    }
     $analysis
 }
 
@@ -767,6 +821,10 @@ Function Validate-JSON
 }
 
 # MAIN SCRIPT
+If($LogsExport)
+{
+    Write-host "You've opted to export policies for resources that only have logs supported .." -ForegroundColor Yellow
+}
 if ($MyInvocation.MyCommand.Path -ne $null)
 {
     $CurrentDir = Split-Path $MyInvocation.MyCommand.Path
@@ -792,6 +850,7 @@ If(!($ExportDir))
 
 #Variable Definitions
 [array]$Resources = @()
+$SubScriptionsToProcess = $null
 
 # Login to Azure - if already logged in, use existing credentials.
 Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
@@ -817,7 +876,7 @@ catch
 
 # Authenticate to Azure if not already authenticated 
 # Ensure this is the subscription where your Azure Resources are you want to send diagnostic data from
-If($AzureLogin -and !($SubscriptionID))
+If($AzureLogin -and !($SubscriptionID) -and !($Tenant))
 {
     [array]$SubscriptionArray = Add-IndexNumberToArray (Get-AzSubscription) 
     [int]$SelectedSub = 0
@@ -860,8 +919,15 @@ If($AzureLogin -and !($SubscriptionID))
         [guid]$SubscriptionID = $($SubscriptionArray[$SelectedSub - 1].ID)
     }
 }
-Write-Host "Selecting Azure Subscription: $($SubscriptionID.Guid) ..." -ForegroundColor Cyan
-$Null = Select-AzSubscription -SubscriptionId $SubscriptionID.Guid
+if($SubscriptionId -and !($Tenant))
+{
+    Write-Host "Selecting Azure Subscription: $($SubscriptionID.Guid) ..." -ForegroundColor Cyan
+    $Null = Select-AzSubscription -SubscriptionId $SubscriptionID.Guid
+}
+if($Tenant)
+{
+    $SubScriptionsToProcess = Get-AzSubscription -TenantId $($token).TenantId
+}
 
 # Determine which resourcetype to search on
 [array]$ResourcesToCheck = @()
@@ -884,7 +950,10 @@ IF($($ExportEH) -or ($ExportLA))
     {
         $FindResourceParams['Name'] = $ResourceName
     }
-    $ResourcesToCheck = Get-AzResource @FindResourceParams 
+    if($SubscriptionId)
+    {
+        $ResourcesToCheck = Get-AzResource @FindResourceParams 
+    }
 
     # If resourceType defined, ensure it can support diagnostics configuration
     if($ResourceType)
@@ -909,11 +978,58 @@ IF($($ExportEH) -or ($ExportLA))
     # Gather a list of resources supporting Azure Diagnostic logs and metrics and display a table
     if(!($ResourceType))
     {
-        Write-Host "Gathering a list of monitorable Resource Types from Azure Subscription ID " -NoNewline -ForegroundColor Cyan
-        Write-Host "$SubscriptionId..." -ForegroundColor Yellow
         try
         {
-            $DiagnosticCapable = Add-IndexNumberToArray (Get-ResourceType $ResourcesToCheck).where({$_.metrics -eq $True -or $_.Logs -eq $True}) 
+            if($SubscriptionId -and !($Tenant))
+            {
+                Write-Host "Gathering a list of monitorable Resource Types from Azure Subscription ID " -NoNewline -ForegroundColor Cyan
+                Write-Host "$SubscriptionId..." -ForegroundColor Yellow
+                
+                # If we only want log policies - only export those otherwise export all
+                If(!($LogPolicyOnly))
+                {
+                    $DiagnosticCapable = Add-IndexNumberToArray (Get-ResourceType -allResources $ResourcesToCheck).where({$_.metrics -eq $True -or $_.Logs -eq $True}) 
+                }
+                else
+                {
+                    $DiagnosticCapable = Add-IndexNumberToArray (Get-ResourceType -allResources $ResourcesToCheck).where({$_.Logs -eq $True}) 
+                }
+            }
+            elseif($Tenant)
+            {
+                Write-Host "Gathering a list of monitorable Resource Types from Azure AD Tenant " -ForegroundColor Cyan
+                Write-Host "A total of $($SubScriptionsToProcess.count) subscriptions to process..."
+                foreach($Sub in $SubScriptionsToProcess)
+                {
+                    $SelectedSub = Select-AzSubscription -SubscriptionID $($Sub.SubscriptionId)
+                    Write-Host "Analyzing Subscription: $($SelectedSub.Subscription.Name)"
+                    $ResourcesToCheck = Get-AzResource
+                    if($ResourcesToCheck)
+                    {                    
+                        if(!($DiagCapable))
+                        {
+                            $DiagCapable = Get-ResourceType -allResources $ResourcesToCheck
+                        }
+                        else {
+                            $DiagCapable = Get-ResourceType -allResources $ResourcesToCheck -analysis $DiagCapable
+                        }
+                    }
+                }
+                # Add the "ALL" option after grabbing all resourceTypes from all subs in Tenant
+                $object = New-Object -TypeName PSObject -Property @{'ResourceType' = "All"; 'Metrics' = "True"; 'Logs' = "True"; 'Categories' = "Various"}
+                $DiagCapable += $object
+                
+                # If we only want log policies - only export those otherwise export all
+                If(!($LogPolicyOnly))
+                {
+                    $DiagnosticCapable = Add-IndexNumberToArray ($DiagCapable).where({$_.metrics -eq $True -or $_.Logs -eq $True}) 
+                }
+                else
+                {
+                    $DiagnosticCapable = Add-IndexNumberToArray ($DiagCapable).where({$_.Logs -eq $True}) 
+                }
+                
+            }
 
             [int]$ResourceTypeToProcess = 0
             if($($DiagnosticCapable|Where-Object {$_.ResourceType -ne "ALL"}).count -eq 1)
@@ -937,7 +1053,10 @@ IF($($ExportEH) -or ($ExportLA))
         }
         catch
         {
-            Throw write-host "No diagnostic capable resources available in selected subscription $SubscriptionID" -ForegroundColor Red
+            if($SubscriptionId)
+            {
+                Throw write-host "No diagnostic capable resources available in selected subscription $SubscriptionID" -ForegroundColor Red
+            }
         }
     }
 
