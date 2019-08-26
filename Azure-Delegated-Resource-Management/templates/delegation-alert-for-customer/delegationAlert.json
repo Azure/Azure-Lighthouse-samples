@@ -62,7 +62,7 @@
 
             ],
             "properties": {
-                "description": "Notifies when someone successfully has retrieved secrets from KeyVault.",
+                "description": "Notifies when someone successfully has delegated a Subscription to a managing tenant.",
                 "enabled": "true",
                 "source": {
                     "query": "AzureActivity | where OperationName == 'Add Managed Services Registration Assignment' and ActivityStatusValue == 'Succeeded' | project Caller, SubscriptionId, Authorization",

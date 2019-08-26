@@ -11,9 +11,6 @@
         "managedByTenantId": {
             "value": "<insert managing tenant id>"
         },
-        "publisherName": {
-            "value": "Fabrikam"
-        },
         "authorizations": {
             "value": [
                 {
