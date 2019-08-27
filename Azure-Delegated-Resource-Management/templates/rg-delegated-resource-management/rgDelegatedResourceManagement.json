@@ -32,7 +32,7 @@
     },
     "variables": {
         "mspRegistrationName": "[guid(parameters('mspName'))]",
-        "mspAssignmentName": "[guid(parameters('mspName'))]"
+        "mspAssignmentName": "[guid(parameters('rgName'))]"
     },
     "resources": [
         {
