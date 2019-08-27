@@ -1,14 +1,14 @@
 # Using Resource Graph to detect storage accounts not being secured by https
 
-Search-AzGraph -Query "summarize count() by tenantId" | ConvertTo-Json
+$subs = Get-AzSubscription
 
-Search-AzGraph -Query "where type =~ 'Microsoft.Storage/storageAccounts' | project name, location, subscriptionId, tenantId, properties.supportsHttpsTrafficOnly" | convertto-json
+Search-AzGraph -Query "summarize count() by tenantId" -subscription $subs.subscriptionId | ConvertTo-Json
+
+Search-AzGraph -Query "where type =~ 'Microsoft.Storage/storageAccounts' | project name, location, subscriptionId, tenantId, properties.supportsHttpsTrafficOnly" -subscription $subs.subscriptionId | convertto-json
 
 # Deploying Azure Policy using ARM templates at scale across multiple customer scopes, to deny creation of storage accounts not using https
 
-$subs = Get-AzSubscription
-
-Write-Output "In total, there's $($subs.Count) projected customer subscriptions to be managed"
+Write-Output "In total, there's $($subs.Count) delegated customer subscriptions to be managed"
 
 foreach ($sub in $subs)
 {
