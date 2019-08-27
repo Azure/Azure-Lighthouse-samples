@@ -63,4 +63,4 @@ foreach ($sub in $subs)
     Write-Output "ARM deployment has been deleted - we're done"
     }
 }
-```
+````
