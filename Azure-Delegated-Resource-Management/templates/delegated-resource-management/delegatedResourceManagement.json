@@ -2,10 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "mspName": {
+        "mspOfferName": {
             "type": "string",
             "metadata": {
-                "description": "Specify the Managed Service Provider name"
+                "description": "Specify the name of the offer from the Managed Service Provider"
             }
         },
         "mspOfferDescription": {
@@ -28,7 +28,7 @@
         }              
     },
     "variables": {
-        "mspRegistrationName": "[guid(parameters('mspName'))]",
+        "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
         "mspAssignmentName": "[guid(parameters('mspName'))]"
     },
     "resources": [
@@ -37,7 +37,7 @@
             "apiVersion": "2019-06-01",
             "name": "[variables('mspRegistrationName')]",
             "properties": {
-                "registrationDefinitionName": "[parameters('mspName')]",
+                "registrationDefinitionName": "[parameters('mspOfferName')]",
                 "description": "[parameters('mspOfferDescription')]",
                 "managedByTenantId": "[parameters('managedByTenantId')]",
                 "authorizations": "[parameters('authorizations')]"
@@ -56,9 +56,9 @@
         }
     ],
     "outputs": {
-        "mspName": {
+        "mspOfferName": {
             "type": "string",
-            "value": "[concat('Managed by', ' ', parameters('mspName'))]"
+            "value": "[concat('Managed by', ' ', parameters('mspOfferName'))]"
         },
         "authorizations": {
             "type": "array",
