@@ -5,7 +5,7 @@
         "mspOfferName": {
             "type": "string",
             "metadata": {
-                "description": "Specify the Managed Service Provider name"
+                "description": "Specify the name of the offer from the Managed Service Provider"
             }
         },
         "mspOfferDescription": {
@@ -56,7 +56,7 @@
         }
     ],
     "outputs": {
-        "mspName": {
+        "mspOfferName": {
             "type": "string",
             "value": "[concat('Managed by', ' ', parameters('mspOfferName'))]"
         },
