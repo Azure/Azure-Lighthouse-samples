@@ -1,0 +1,111 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "rbacGuid": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
+        }
+    },
+    "variables": {
+        "policyDefinitionName": "CRUD-tags",
+        "policyAssignmentName": "CRUD-tags",
+        "rbacContributor": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2018-03-01",
+            "name": "[variables('policyDefinitionName')]",
+            "properties": {
+                "description": "Policy to create and modify tags",
+                "displayName": "Policy to create and modify tags",
+                "policyType": "Custom",
+                "mode": "Indexed",
+                "policyRule": {
+                    "if": {
+                        "allOf": [
+                            {
+                                "field": "type",
+                                "equals": "Microsoft.Compute/virtualMachines"
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "modify",
+                        "details": {
+                            "roleDefinitionIds": [
+                                "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+                            ],
+                            "operations": [
+                                {
+                                    "operation": "addOrReplace",
+                                    "field": "tags['managedByTenant']",
+                                    "value": "Lighthouse"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2018-05-01",
+            "name": "[variables('policyAssignmentName')]",
+            "location": "[deployment().location]",
+            "dependsOn": [
+                "[variables('policyDefinitionName')]"
+            ],
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "description": "[variables('policyAssignmentName')]",
+                "displayName": "[variables('policyAssignmentName')]",
+                "policyDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/policyDefinitions/', variables('policyDefinitionName'))]",
+                "scope": "[subscription().id]"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "location": "[deployment().location]",
+            "name": "[concat('builtInDelay', copyIndex())]",
+            "dependsOn": [
+                "[variables('policyAssignmentName')]"
+            ],
+            "copy": {
+                "name": "builtInDelayCopy",
+                "count": 5,
+                "mode": "Serial",
+                "batchSize": 1
+            },
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [],
+                    "outputs": {}
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2019-04-01-preview",
+            "name": "[parameters('rbacGuid')]",
+            "dependsOn": [
+                "builtInDelayCopy",
+                "[variables('policyAssignmentName')]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacContributor'))]",
+                "delegatedManagedIdentityResourceId": "[concat(subscription().id, '/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignmentName'))]",
+                "principalId": "[toLower(reference(concat('/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignmentName')), '2018-05-01', 'Full' ).identity.principalId)]"
+            }
+        }
+    ]
+}
