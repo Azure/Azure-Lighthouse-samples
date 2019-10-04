@@ -3,7 +3,8 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "logAnalytics": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "/subscriptions/be69f302-c88c-4c82-9ecd-f914ea0ad184/resourceGroups/OMS/providers/Microsoft.OperationalInsights/workspaces/OMSASRKN"
         },
         "rbacGuid": {
             "type": "string",
@@ -152,41 +153,15 @@
             }
         },
         {
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2018-05-01",
-            "location": "[deployment().location]",
-            "name": "[concat('builtInDelay', copyIndex())]",
-            "dependsOn": [
-                "[variables('policyAssignment')]"
-            ],
-            "copy": {
-                "name": "builtInDelayCopy",
-                "count": 5,
-                "mode": "Serial",
-                "batchSize": 1
-            },
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "variables": {},
-                    "resources": [],
-                    "outputs": {}
-                }
-            }
-        },
-        {
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2019-04-01-preview",
             "name": "[parameters('rbacGuid')]",
             "dependsOn": [
-                "builtInDelayCopy",
                 "[variables('policyAssignment')]"
             ],
             "properties": {
                 "roleDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacContributor'))]",
+                "principalType": "ServicePrincipal",
                 "delegatedManagedIdentityResourceId": "[concat(subscription().id, '/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignment'))]",
                 "principalId": "[toLower(reference(concat('/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignment')), '2018-05-01', 'Full' ).identity.principalId)]"
             }
