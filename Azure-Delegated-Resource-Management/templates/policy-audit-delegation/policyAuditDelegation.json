@@ -12,8 +12,8 @@
             "name": "[variables('policyDefinitionName')]",
             "apiVersion": "2018-05-01",
             "properties":{
-                "description": "Audit subscription delegation.",
-                "displayName": "Audit subscription delegation.",
+                "description": "Audit delegation of scopes to a managing tenant",
+                "displayName": "Audit delegation of scopes",
                 "mode":"All",
                 "policyRule": {
                     "if": {
@@ -40,7 +40,7 @@
             "properties": {
                 "description": "Audit subscription delegation.",
                 "displayName": "Audit subscription delegation.",
-                "policyDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/policyDefinitions/', variables('policyDefinitionName'))]",
+                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions/', variables('policyDefinitionName'))]",
                 "scope": "[subscription().id]"
                 
             }
