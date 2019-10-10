@@ -22,7 +22,6 @@ function Get-AzDelegatedSubscription {
     $list = Invoke-RestMethod @listSubscriptions
 
     # Filtering the output to only show the delegated subscriptions
-    Write-Host "Preparing list of delegated subscriptions..."
     $delegatedSubsValue = $list.value
     $delegatedSubsValue | Where-Object -FilterScript { $_.tenantId -ne $token.TenantId }
 }
