@@ -1,0 +1,38 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string"
+        },
+        "workspaceRegion": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "solutions": 
+            {
+                "name": "[concat('SecurityInsights', '(', parameters('workspaceName'), ')')]",
+                "marketplaceName": "SecurityInsights"
+            }
+    },
+    "resources": [
+        {
+            "apiVersion": "2015-11-01-preview",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "name": "[variables('solutions').name]",
+            "location": "[parameters('workspaceRegion')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
+            },
+            "plan": {
+                "name": "[variables('solutions').marketplaceName]",
+                "product": "[concat('OMSGallery/', variables('solutions').marketplaceName)]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        }
+    ]
+}
