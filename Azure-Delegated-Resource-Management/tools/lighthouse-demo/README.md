@@ -13,19 +13,19 @@ This Powershell script will walk through some of the management capabilities in 
 ````
 # Using Resource Graph to detect storage accounts not being secured by https
 
-Search-AzGraph -Query "summarize count() by tenantId" | ConvertTo-Json
+$MspTenant = "insert your managing tenantId here"
 
-Search-AzGraph -Query "where type =~ 'Microsoft.Storage/storageAccounts' | project name, location, subscriptionId, tenantId, properties.supportsHttpsTrafficOnly" | convertto-json
+$ManagedSubscriptions = Search-AzGraph -Query "ResourceContainers | where type == 'microsoft.resources/subscriptions' | where tenantId != '$($mspTenant)' | project name, subscriptionId, tenantId" -subscription $subs.subscriptionId
+
+Search-AzGraph -Query "where type =~ 'Microsoft.Storage/storageAccounts' | project name, location, subscriptionId, tenantId, properties.supportsHttpsTrafficOnly" -subscription $ManagedSubscriptions.subscriptionId | convertto-json
 
 # Deploying Azure Policy using ARM templates at scale across multiple customer scopes, to deny creation of storage accounts not using https
 
-$subs = Get-AzSubscription
+Write-Output "In total, there's $($ManagedSubscriptions.Count) delegated customer subscriptions to be managed"
 
-Write-Output "In total, there's $($subs.Count) projected customer subscriptions to be managed"
-
-foreach ($sub in $subs)
+foreach ($ManagedSub in $ManagedSubscriptions)
 {
-    Select-AzSubscription -SubscriptionId $sub.id
+    Select-AzSubscription -SubscriptionId $ManagedSub.subscriptionId
 
     New-AzDeployment -Name mgmt `
                      -Location eastus `
@@ -44,9 +44,9 @@ New-AzStorageAccount -ResourceGroupName (New-AzResourceGroup -name kntest -Locat
                      
 # clean-up
 
-foreach ($sub in $subs)
+foreach ($ManagedSub in $ManagedSubscriptions)
 {
-    select-azsubscription -subscriptionId $sub.id
+    select-azsubscription -subscriptionId $ManagedSub.subscriptionId
 
     Remove-AzDeployment -Name mgmt -AsJob
 
@@ -58,7 +58,7 @@ foreach ($sub in $subs)
     }
     else
     {
-    Remove-AzPolicyAssignment -Name 'enforce-https-storage-assignment' -Scope "/subscriptions/$($sub.id)" -Verbose
+    Remove-AzPolicyAssignment -Name 'enforce-https-storage-assignment' -Scope "/subscriptions/$($ManagedSub.subscriptionId)" -Verbose
 
     Write-Output "ARM deployment has been deleted - we're done"
     }
