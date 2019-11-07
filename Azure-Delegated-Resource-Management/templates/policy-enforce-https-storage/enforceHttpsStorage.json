@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2018-05-01",
+            "name": "enforce-https-storage",
+            "properties":{
+                "description": "Enforce https traffic-only for storage account",
+                "displayName": "Enforce https traffic-only for storage account",
+                "policyRule": {
+                    "if": {
+                        "allOf": [
+                            {
+                                "field": "type",
+                                "equals": "Microsoft.Storage/storageAccounts"
+                            },
+                            {
+                                "not": {
+                                    "field": "Microsoft.Storage/storageAccounts/supportsHttpsTrafficOnly",
+                                    "equals": "true"
+                                }
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "deny"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2018-05-01",
+            "name": "enforce-https-storage-assignment",
+            "dependsOn": [
+                "enforce-https-storage"
+            ],
+            "properties":{
+                "description": "Enforce https traffic only for storage account",
+                "displayName": "Enforce https traffic only for storage account",
+                "policyDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/policyDefinitions/', 'enforce-https-storage')]"
+            }
+        }
+    ],
+    "outputs": {}
+}
