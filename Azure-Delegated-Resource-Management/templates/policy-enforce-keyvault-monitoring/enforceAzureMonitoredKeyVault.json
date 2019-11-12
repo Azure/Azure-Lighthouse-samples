@@ -45,7 +45,7 @@
                         "details": {
                             "type": "Microsoft.Insights/diagnosticSettings",
                             "roleDefinitionIds": [
-                                "[concat('/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c', variables('rbacContributor'))]"
+                                "[concat('/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacContributor'))]"
                             ],
                             "existenceCondition": {
                                 "allOf": [
@@ -162,7 +162,7 @@
             "properties": {
                 "roleDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacContributor'))]",
                 "principalType": "ServicePrincipal",
-                "delegatedManagedIdentityResourceId": "[concat(subscription().id, '/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignment'))]",
+                "delegatedManagedIdentityResourceId": "[if(not(empty(subscription().managedByTenants)), concat(subscription().id, '/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignment')), json('null'))]",
                 "principalId": "[toLower(reference(concat('/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignment')), '2018-05-01', 'Full' ).identity.principalId)]"
             }
         }
