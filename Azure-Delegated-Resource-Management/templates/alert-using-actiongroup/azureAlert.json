@@ -14,7 +14,7 @@
             "type": "string",
             "defaultValue": "This is a metric alert",
             "metadata": {
-                "description": "Description of alert"
+                "description": "Description of alert that will be created"
             }
         },
         "alertSeverity": {
