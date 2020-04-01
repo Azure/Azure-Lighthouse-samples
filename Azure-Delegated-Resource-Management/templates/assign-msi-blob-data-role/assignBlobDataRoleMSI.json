@@ -22,21 +22,21 @@
         },
         "roleAssignmentReaderGuid": {
             "type": "string",
-            "defaultValue": "[newGuid()]",
+            "defaultValue": "[guid(concat(deployment().name, 'reader'))]",
             "metadata": {
                 "description": "Generates a GUID as name for reader role assignment"
             }
         },
         "roleAssignmentDelegatorGuid": {
             "type": "string",
-            "defaultValue": "[newGuid()]",
+            "defaultValue": "[guid(concat(deployment().name, 'delegator'))]",
             "metadata": {
                 "description": "Generates a GUID as name for delegator role assignment"
             }
         }
     },
     "variables": {
-        "webappResourceId": "[concat(subscription().id,  '/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/sites/', parameters('webAppName'))]",
+        "webappResourceId": "[resourceId('Microsoft.Web/sites/', parameters('webAppName'))]",
         "rbacBlobDataReader": "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1",
         "rbacStorageDelegator": "db58b8e5-c6ad-4a2a-8342-4190687cbf4a"
     },
@@ -46,11 +46,11 @@
             "apiVersion": "2019-04-01-preview",
             "name": "[concat(parameters('storageAccountName'), '/Microsoft.Authorization/', parameters('roleAssignmentReaderGuid'))]",
             "properties": {
-                "roleDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacBlobDataReader'))]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions/', variables('rbacBlobDataReader'))]",
                 "principalType": "ServicePrincipal",
                 "delegatedManagedIdentityResourceId": "[variables('webappResourceId')]",
                 "principalId": "[reference(variables('webappResourceId'), '2019-08-01', 'Full').identity.principalId]",
-                "scope": "[concat(subscription().id,  '/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]"
+                "scope": "[resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]"
             }
         },
         {
@@ -58,7 +58,7 @@
             "apiVersion": "2019-04-01-preview",
             "name": "[concat(parameters('storageAccountName'), '/default/', parameters('containerName'), '/Microsoft.Authorization/', parameters('roleAssignmentDelegatorGuid'))]",
             "properties": {
-                "roleDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacStorageDelegator'))]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions/', variables('rbacStorageDelegator'))]",
                 "principalType": "ServicePrincipal",
                 "delegatedManagedIdentityResourceId": "[variables('webappResourceId')]",
                 "principalId": "[reference(variables('webappResourceId'), '2019-08-01', 'Full').identity.principalId]"
