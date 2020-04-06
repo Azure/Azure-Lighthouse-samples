@@ -1,0 +1,7 @@
+@{Name=Avere Cluster Runtime Operator}
+@{Name=Avere Contributor}
+@{Name=Avere Operator}
+@{Name=Azure Maps Data Reader (Preview)}
+@{Name=Blockchain Member Node Access (Preview)}
+@{Name=Cognitive Services User}
+@{Name=Cognitive Services Data Reader (Preview)}
