@@ -76,7 +76,9 @@
             ],
             "properties": {
                 "roleDefinitionId": "[concat(subscription().id, '/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacContributor'))]",
+                // The principalType property will tell Microsoft.Authorization not to perform the check for existence on your principal ID during roleAssignment creation
                 "principalType": "ServicePrincipal",
+                // Using logical operators to determine whether the deployment is running in single vs cross-tenant context
                 "delegatedManagedIdentityResourceId": "[if(not(empty(subscription().managedByTenants)), concat(subscription().id, '/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignmentName')), json('null'))]",
                 "principalId": "[toLower(reference(concat('/providers/Microsoft.Authorization/policyAssignments/', variables('policyAssignmentName')), '2018-05-01', 'Full' ).identity.principalId)]"
             }
