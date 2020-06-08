@@ -1,3 +1,4 @@
+# Azure Diagnostics Policy Generator
 # OVERVIEW OF CREATE-AZDIAGPOLICY.PS1
 
 <span style="color:dodgerBlue">**UPDATE**</span> - 
