@@ -9,7 +9,7 @@
             "value": "Relecloud Managed Services"
         },
         "managedByTenantId": {
-            "value": "fbcdd0f3-dc82-4cee-bcde-7301d24e9bf6"
+            "value": "<insert the managing tenant id>"
         },
         "authorizations": {
             "value": [
