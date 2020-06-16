@@ -28,7 +28,9 @@
                             "maximumActivationDuration": "PT8H" 
                         },
                         "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
-                        "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c" 
+                        "principalIdDisplayName": "Tier 2 Support",
+                        "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+                        
                 }                    
             ]    
         }
