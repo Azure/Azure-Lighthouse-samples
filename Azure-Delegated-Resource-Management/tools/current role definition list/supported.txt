@@ -1,0 +1,132 @@
+@{InputObject=@{Name=Avere Cluster Create}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Service Deploy Release Management Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=CAL-Custom-Role}; SideIndicator=<=}
+@{InputObject=@{Name=Dsms Role (deprecated)}; SideIndicator=<=}
+@{InputObject=@{Name=Dsms Role (do not use)}; SideIndicator=<=}
+@{InputObject=@{Name=ExpressRoute Administrator}; SideIndicator=<=}
+@{InputObject=@{Name=GenevaWarmPathResourceContributor}; SideIndicator=<=}
+@{InputObject=@{Name=masterreader}; SideIndicator=<=}
+@{InputObject=@{Name=Microsoft OneAsset Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Office DevOps}; SideIndicator=<=}
+@{InputObject=@{Name=GenevaWarmPathStorageBlobContributor}; SideIndicator=<=}
+@{InputObject=@{Name=AcrPush}; SideIndicator=<=}
+@{InputObject=@{Name=API Management Service Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=AcrPull}; SideIndicator=<=}
+@{InputObject=@{Name=AcrImageSigner}; SideIndicator=<=}
+@{InputObject=@{Name=AcrDelete}; SideIndicator=<=}
+@{InputObject=@{Name=AcrQuarantineReader}; SideIndicator=<=}
+@{InputObject=@{Name=AcrQuarantineWriter}; SideIndicator=<=}
+@{InputObject=@{Name=API Management Service Operator Role}; SideIndicator=<=}
+@{InputObject=@{Name=API Management Service Reader Role}; SideIndicator=<=}
+@{InputObject=@{Name=Application Insights Component Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Application Insights Snapshot Debugger}; SideIndicator=<=}
+@{InputObject=@{Name=Attestation Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Automation Job Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Automation Runbook Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Automation Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Kubernetes Service Cluster Admin Role}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Kubernetes Service Cluster User Role}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Stack Registration Owner}; SideIndicator=<=}
+@{InputObject=@{Name=Backup Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Billing Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Backup Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Backup Reader}; SideIndicator=<=}
+@{InputObject=@{Name=BizTalk Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=CDN Endpoint Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=CDN Endpoint Reader}; SideIndicator=<=}
+@{InputObject=@{Name=CDN Profile Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=CDN Profile Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Classic Network Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Classic Storage Account Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Classic Storage Account Key Operator Service Role}; SideIndicator=<=}
+@{InputObject=@{Name=ClearDB MySQL DB Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Classic Virtual Machine Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Cognitive Services Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=CosmosBackupOperator}; SideIndicator=<=}
+@{InputObject=@{Name=Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Cosmos DB Account Reader Role}; SideIndicator=<=}
+@{InputObject=@{Name=Cost Management Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Cost Management Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Data Box Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Data Box Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Data Factory Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Data Purger}; SideIndicator=<=}
+@{InputObject=@{Name=Data Lake Analytics Developer}; SideIndicator=<=}
+@{InputObject=@{Name=DevTest Labs User}; SideIndicator=<=}
+@{InputObject=@{Name=DocumentDB Account Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=DNS Zone Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=EventGrid EventSubscription Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=EventGrid EventSubscription Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Graph Owner}; SideIndicator=<=}
+@{InputObject=@{Name=HDInsight Domain Services Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Intelligent Systems Account Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Key Vault Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Knowledge Consumer}; SideIndicator=<=}
+@{InputObject=@{Name=Lab Creator}; SideIndicator=<=}
+@{InputObject=@{Name=Log Analytics Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Log Analytics Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Logic App Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Logic App Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Managed Application Operator Role}; SideIndicator=<=}
+@{InputObject=@{Name=Managed Applications Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Managed Identity Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Managed Identity Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Management Group Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Management Group Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Monitoring Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Network Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Monitoring Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=New Relic APM Account Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Owner}; SideIndicator=<=}
+@{InputObject=@{Name=Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Redis Cache Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Reader and Data Access}; SideIndicator=<=}
+@{InputObject=@{Name=Resource Policy Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Scheduler Job Collections Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Search Service Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Security Admin}; SideIndicator=<=}
+@{InputObject=@{Name=Security Manager (Legacy)}; SideIndicator=<=}
+@{InputObject=@{Name=Security Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Site Recovery Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Site Recovery Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Site Recovery Reader}; SideIndicator=<=}
+@{InputObject=@{Name=SQL Managed Instance Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=SQL DB Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=SQL Security Manager}; SideIndicator=<=}
+@{InputObject=@{Name=Storage Account Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=SQL Server Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Storage Account Key Operator Service Role}; SideIndicator=<=}
+@{InputObject=@{Name=Support Request Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Traffic Manager Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=User Access Administrator}; SideIndicator=<=}
+@{InputObject=@{Name=Virtual Machine Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Web Plan Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Website Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Attestation Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=HDInsight Cluster Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Cosmos DB Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Hybrid Server Resource Administrator}; SideIndicator=<=}
+@{InputObject=@{Name=Hybrid Server Onboarding}; SideIndicator=<=}
+@{InputObject=@{Name=Private DNS Zone Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Storage Blob Delegator}; SideIndicator=<=}
+@{InputObject=@{Name=Blueprint Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Blueprint Operator}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Sentinel Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Sentinel Responder}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Sentinel Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Workbook Reader}; SideIndicator=<=}
+@{InputObject=@{Name=Workbook Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=SignalR AccessKey Reader}; SideIndicator=<=}
+@{InputObject=@{Name=SignalR Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Connected Machine Onboarding}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Connected Machine Resource Administrator}; SideIndicator=<=}
+@{InputObject=@{Name=Managed Services Registration assignment Delete Role}; SideIndicator=<=}
+@{InputObject=@{Name=Kubernetes Cluster - Azure Arc Onboarding}; SideIndicator=<=}
+@{InputObject=@{Name=Managed Application Contributor Role}; SideIndicator=<=}
+@{InputObject=@{Name=Security Assessment Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Tag Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Integration Service Environment Developer}; SideIndicator=<=}
+@{InputObject=@{Name=Integration Service Environment Contributor}; SideIndicator=<=}
+@{InputObject=@{Name=Marketplace Admin}; SideIndicator=<=}
+@{InputObject=@{Name=Azure Kubernetes Service Contributor Role}; SideIndicator=<=}
+@{InputObject=@{Name=Hierarchy Settings Administrator}; SideIndicator=<=}
