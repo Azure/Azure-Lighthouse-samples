@@ -16,8 +16,13 @@
                 { 
                     "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
                     "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
-                    "principalIdDisplayName": "PIM group" 
-                }              
+                    "principalIdDisplayName": "PIM_Group" 
+                }, 
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
+                    "principalIdDisplayName": "PIM_Group" 
+                }            
             ]
         }, 
         "eligibleAuthorizations":{
@@ -29,7 +34,7 @@
                         },
                         "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
                         "principalIdDisplayName": "PIM_Group",
-                        "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+                        "roleDefinitionId": "36243c78-bf99-498c-9df9-86d9f8d28608" 
                         
                 }                    
             ]    
