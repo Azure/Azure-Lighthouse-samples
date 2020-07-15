@@ -6,9 +6,10 @@ Azure Lighthouse provides capabilities for partners to perform cross customer ma
 This repository contains samples to help you use Azure Resource Manager to configure [Azure delegated resource management](https://docs.microsoft.com/azure/lighthouse/concepts/azure-delegated-resource-management) and to configure monitoring and management of customer environments.
 
 
- Description | Deployment type | ARM Template|
-| -------------  | ------------- |-------------  |
-Delegated resource management-eligible-authorizations| PIM Deployment  | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2FAzure%2FAzure-Lighthouse-samples%2Fblob%2Fmaster%2Ftemplates%2Fdelegated-resource-management-eligible-authorizations%2FdelegatedResourcemanagement-eligible-authorizations.json|
+| Name  | Deployment type | ARM Template
+| ------------- | ------------- |------------- |
+| PIM | Subscription | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2FAzure%2FAzure-Lighthouse-samples%2Fblob%2Fmaster%2Ftemplates%2Fdelegated-resource-management-eligible-authorizations%2FdelegatedResourcemanagement-eligible-authorizations.json |
+| Content Cell  | Content Cell  |
                                                     
 
 
