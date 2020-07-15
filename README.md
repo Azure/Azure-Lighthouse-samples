@@ -7,7 +7,7 @@ This repository contains samples to help you use Azure Resource Manager to confi
 
 
  Description | Deployment type | ARM Template|
- ----------- | ------------- | -------------------------------------- |
+ ---------------- | -------------------- | -------------------------------------- |
 Delegated resource management-eligible-authorizations| PIM Deployment  | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2FAzure%2FAzure-Lighthouse-samples%2Fblob%2Fmaster%2Ftemplates%2Fdelegated-resource-management-eligible-authorizations%2FdelegatedResourcemanagement-eligible-authorizations.json|
                                                     
 
