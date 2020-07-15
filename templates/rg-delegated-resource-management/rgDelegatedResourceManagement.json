@@ -6,25 +6,40 @@
             "type": "string",
             "metadata": {
                 "description": "Specify the name of the offer from the Managed Service Provider"
-            }
+            },
+            "defaultValue": "<to be filled out by MSP> Specify a title for your offer"
         },
         "mspOfferDescription": {
             "type": "string",
             "metadata": {
                 "description": "Name of the Managed Service Provider offering"
-            }
+            },
+            "defaultValue": "<to be filled out by MSP> Provide a brief description of your offer"
         },
         "managedByTenantId": {
             "type": "string",
             "metadata": {
                 "description": "Specify the tenant id of the Managed Service Provider"
-            }
+            },
+            "defaultValue": "<to be filled out by MSP> Provide your tenant id"
         },
         "authorizations": {
             "type": "array",
             "metadata": {
                 "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
-            }
+            },
+            "defaultValue": [
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+                    "principalIdDisplayName": "PIM_Group" 
+                }, 
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
+                    "principalIdDisplayName": "PIM_Group" 
+                }   
+            ]
         },
         "rgName": {
             "type": "string"
