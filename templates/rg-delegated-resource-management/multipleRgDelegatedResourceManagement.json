@@ -5,7 +5,7 @@
         "mspOfferName": {
             "type": "string",
             "metadata": {
-                "description": "Specify the name of the Offer from the Managed Service Provider"
+                "description": "Specify a unique name for your offer"
             }
         },
         "mspOfferDescription": {
