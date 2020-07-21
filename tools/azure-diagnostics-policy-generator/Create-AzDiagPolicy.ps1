@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 2.0
+.VERSION 2.1
 
 .GUID e0962947-bf3c-4ed4-be3b-39cb7f6348c6
 
@@ -26,50 +26,20 @@ https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-June 07, 2020 2.0
-Significant Updates this version which pushed it to 2.0!
- * Special thanks to Dimitri Lider, and Julian Hayward (Microsoft) once again for their constant inputs on this script to improve! 
-
- * A HUGE THANK YOU to the ClearDATA crew for their support in bug bashing an early iteration of this 2.0 ver script before going broadly. 
-    -- Thank you Jason Singh for leaning in on support for prioritizing review of this effort 
-    -- And for Rob Sanders (https://github.com/rwsanders) for his isolation of a breaking bug I introduced that was much more easily isolated and resolved with his support!
-
- * Another special call out to Kristian Nese @KristianNese (https://github.com/krnese) and Chris Eggert (https://github.com/pilor) @pilor 
- * for their technical review and big brain guidance related to approach and technical accuracy in the area of ARM and Policy! 
- 
-    Policy Initiative Support
-    - Added support for exporting to ARM Template Policy Initiative Artifact
-    -- Option for customized displayname for Initiative
-    -- Ability for Custom Azure Policies and Initiative to be idempotent due to creating a unique name via hash
-    --- Inspiration reference http://xpertkb.com/compute-hash-string-powershell/
-
-    User Experience
-    - Added logic to return to initial subscription context after successfully running the script (useful on Tenant / Management Group analysis)
-    - Improved token expiration experience for Azure Auth
-    - Added Total Execution Time to help understand performance of script against environment
-    - Updated Examples
-
-    Visual Updates
-    - Prettify function added to clean up JSON export
-    -- Inspiration via reference article / source: https://stackoverflow.com/questions/24789365/prettify-json-in-powershell-3/61988399#61988399
-    - Added process to clean up exported JSON 
-    -- Credit to https://github.com/DeadPoolHeartsRR for their input on another script to use logic to use regex to clean up non printable chars (thank you! - Dead Pool Rocks BTW :) )
-    - Updated initial subscriptionId selection to show subscription name on screen.
-
-    Feature Enhancement
-    - Added "Kind" to evaluation to support RPs that leverage kind in category evaluation (Example: Azure SQL DW vs Azure SQL DB)
+July 16, 2020 2.1
+    Storage Added as a sink to policy and policy initiative ARM template exports
 #>
 
 <#  
 .SYNOPSIS  
-  Create a custom policy (and optional Policy Initative) to enable Azure Diagnostics and send that data to a Log Analytics Workspace or Regional Event Hub
+  Create a custom policy (and optional Policy Initative) to enable Azure Diagnostics and send that data to a Log Analytics Workspace, Regional Storage Account or Regional Event Hub
   
-  Note  This script currently supports onboarding Azure resources that support Azure Diagnostics (metrics and logs) to Log Analytics and Event Hub
+  Note  This script currently supports onboarding Azure resources that support Azure Diagnostics (metrics and logs) to Log Analytics, Event Hub, and Storage
   
 .DESCRIPTION  
   This script takes a SubscriptionID, ResourceType, ResourceGroup as parameters, analyzes the subscription or
   specific ResourceGroup defined for the resources specified in $Resources, and builds a custom policy for 
-  diagnostic metrics/logs for Event Hubs and Log Analytics as sink points for selected resource types.
+  diagnostic metrics/logs for Event Hubs, Storage and Log Analytics as sink points for selected resource types.
 
 .PARAMETER SubscriptionId
     The subscriptionID of the Azure Subscription that contains the resources you want to analyze
@@ -95,6 +65,9 @@ Significant Updates this version which pushed it to 2.0!
 .PARAMETER ExportEH
     Export only Event Hub Policies for Azure Diagnostics
 
+.PARAMETER ExportStorage
+    Export only Storage Policies for Azure Diagnostics
+
 .PARAMETER ValidateJSON
     If specified will do a post export validation recursively against the export directory or will validate JSONs recursively in current script
     directory and subfolders or exportdirectory (if specified).
@@ -108,7 +81,7 @@ Significant Updates this version which pushed it to 2.0!
 
 .PARAMETER AllRegions
     This AllRegions switch can be used to bypass the "location" check / parameter in the Azure Policies for Log Analytics.  
-    Note: This switch does not support EventHub based policies due to the region requirement for EventHubs and Azure Diagnostic settings
+    Note: This switch does not support EventHub/Storage based policies due to the region requirement for EventHubs/Storage and Azure Diagnostic settings
  
 .PARAMETER ManagementGroup
     This ManagementGroup switch can be used to change scope for scanning for resourceTypes that suppport Azure Diags to be at the Management Group
@@ -143,6 +116,11 @@ Significant Updates this version which pushed it to 2.0!
   .\Create-AzDiagPolicy.ps1 -ExportEH
   Will prompt for subscriptionID to leverage for analysis, prompt for which resourceTypes to export for policies, and export the policies specific
   to Event Hub only
+
+.EXAMPLE
+  .\Create-AzDiagPolicy.ps1 -ExportStorage
+  Will prompt for subscriptionID to leverage for analysis, prompt for which resourceTypes to export for policies, and export the policies specific
+  to Storage account only  
 
 .EXAMPLE
   .\Create-AzDiagPolicy.ps1 -ValidateJSON -ExportDir "EH-Policies"
@@ -188,10 +166,17 @@ Significant Updates this version which pushed it to 2.0!
   Similar to the previous example, this one adds additional capability of allowing you to define the display name for the Policy Initiative 
   as well as predetermine the templatefile name for the Policy Initiative.  Note the display name is validated that it is less than 127 chars long
   if provided.  Script will break if that value is either exceeded of the value is less than 1 char.
-  
+
+.EXAMPLE
+.\Create-AzDiagPolicy.ps1 -ExportAll -ExportStorage -ValidateJSON -ExportDir ".\LogPolicies" -ManagementGroup -AllRegions -ExportInitiative -InitiativeDisplayName "Azure Diagnostics Policy Initiative for a Regional Storage Account" -TemplateFileName 'ARMTemplateExport'
+  Same as previous example, but exporting to a storage account as a sink point.
+
 .NOTES
    AUTHOR: Jim Britt Senior Program Manager - Azure CXP API (Azure Product Improvement) 
-   LASTEDIT: June 07, 2020 2.0
+   LASTEDIT: July 16, 2020 2.1
+    Storage Added as a sink to policy and policy initiative ARM template exports
+
+   June 07, 2020 2.0
     Significant Updates this version which pushed it to 2.0!
     * Special thanks to Dimitri Lider, and Julian Hayward (Microsoft) once again for their constant inputs on this script to improve! 
 
@@ -299,6 +284,14 @@ param
     [Parameter(ParameterSetName='Tenant')]
     [Parameter(ParameterSetName='ManagementGroup')]
     [switch]$ExportLA=$False,
+
+    # Export Storage Specific Policies
+    [Parameter(ParameterSetName='Default',Mandatory = $False)]
+    [Parameter(ParameterSetName='Export')]
+    [Parameter(ParameterSetName='Subscription')]
+    [Parameter(ParameterSetName='Tenant')]
+    [Parameter(ParameterSetName='ManagementGroup')]
+    [switch]$ExportStorage=$False,
 
     # Provide SubscriptionID to bypass subscription listing
     [Parameter(Mandatory=$False)]
@@ -1317,7 +1310,314 @@ $JSONVar = $JSONVar + $JSONType + @'
     $JSONARRAY    
 }
 
-# Build File Namen / paths for Azure Policy Exports
+function Update-StorageJSON
+(
+    [Parameter(Mandatory=$True)]
+    [string]$resourceType,
+    [Parameter(Mandatory=$False)]
+    [string]$metricsArray,
+    [Parameter(Mandatory=$False)]
+    [string]$logsArray,
+    [Parameter(Mandatory=$True)]
+    [string]$nameField,
+    [Parameter(Mandatory=$False)]
+    [string]$ExportInitiative,
+    [Parameter(Mandatory=$False)]
+    [string]$JSONType,
+    [Parameter(Mandatory=$False)]
+    [string]$Kind,
+    [Parameter(Mandatory=$False)]
+    [string]$PolicyResourceDisplayName,
+    [Parameter(Mandatory=$False)]
+    [string]$PolicyName
+)
+{
+    if($Kind)
+    {
+        $JSONKind = @'
+        ,
+                        {
+                            "field":  "kind",
+                            "equals":  "<RESOURCE KIND>"
+                        }
+'@
+    }
+    else
+    {
+        $JSONKind = $Null
+    }    
+    
+    
+    $JSONARRAY=@()
+
+$JSONPARMS = @'
+{
+            "profileName": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "Profile Name for Config",
+                    "description": "The profile name Azure Diagnostics"
+                }
+            },
+            "StorageAccountID": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "StorageAccountID",
+                    "description": "The Storage Account ID for for Azure Diagnostics",
+                    "strongType": "Microsoft.Storage/StorageAccounts",
+                    "assignPermissions": true
+                }
+            },
+            "azureRegions": {
+                "type": "Array",
+                "metadata": {
+                    "displayName": "Allowed Locations",
+                    "description": "The list of locations that can be specified when deploying resources",
+                    "strongType": "location"
+                }
+            },
+            "metricsEnabled": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "Enable Metrics",
+                    "description": "Enable Metrics - True or False"
+                },
+                "allowedValues": [
+                    "True",
+                    "False"
+                ],
+                "defaultValue": "False"
+            },
+            "logsEnabled": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "Enable Logs",
+                    "description": "Enable Logs - True or False"
+                },
+                "allowedValues": [
+                    "True",
+                    "False"
+                ],
+                "defaultValue": "True"
+            }
+        }
+'@
+
+If(!($AllRegions))
+{
+    $locationParm = @'
+
+"azureRegions": {
+    "value": "[[parameters('azureRegions')]"
+},
+'@
+}
+else {
+    $locationParm = $Null
+}
+
+$initParams = @'
+"parameters": {
+    "storageAccountId": {
+        "value": "[[parameters('storageAccountId')]"
+    },
+    "azureRegions": {
+        "value": "[[parameters('azureRegions')]"
+    },
+    "metricsEnabled": {
+        "value": "[[parameters('metricsEnabled')]"
+    },
+    "logsEnabled": {
+        "value": "[[parameters('logsEnabled')]"
+    },
+    "profileName": {
+        "value": "[[parameters('profileName')]"
+    }
+}
+'@
+
+$JSONRULES = @'
+{
+            "if": {
+                "allOf": [
+                    {
+                        "field": "type",
+                        "equals": "<RESOURCE TYPE>"
+                    },
+                    {
+                        "field": "location",
+                        "in": "[parameters('azureRegions')]"
+                    }<RESOURCE KIND>
+                ]
+            },
+            "then": {
+                "effect": "deployIfNotExists",
+                "details": {
+                    "type": "Microsoft.Insights/diagnosticSettings",
+                    "existenceCondition": {
+                        "allOf": [
+                            {
+                                "field": "Microsoft.Insights/diagnosticSettings/logs.enabled",
+                                "equals": "[parameters('logsEnabled')]"
+                            },
+                            {
+                                "field": "Microsoft.Insights/diagnosticSettings/metrics.enabled",
+                                "equals": "[parameters('metricsEnabled')]"
+                            },
+                            {
+                                "field": "Microsoft.Insights/diagnosticSettings/storageAccountId",
+                                "equals": "[last(split(parameters('storageAccountId'), '/'))]"
+                            }
+                        ]
+                    },
+                    "roleDefinitionIds": [
+                        "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+                    ],
+                    "deployment": {
+                        "properties": {
+                            "mode": "incremental",
+                            "template": {
+                                "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                "contentVersion": "1.0.0.0",
+                                "parameters": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "location": {
+                                        "type": "string"
+                                    },
+                                    "storageAccountId": {
+                                        "type": "string"
+                                    },
+                                    "metricsEnabled": {
+                                        "type": "string"
+                                    },
+                                    "logsEnabled": {
+                                        "type": "string"
+                                    },
+                                    "profileName": {
+                                        "type": "string"
+                                    }
+                                },
+                                "variables": {},
+                                "resources": [
+                                    {
+                                        "type": "<RESOURCE TYPE>/providers/diagnosticSettings",
+                                        "apiVersion": "2017-05-01-preview",
+                                        "name": "[concat(parameters('name'), '/', 'Microsoft.Insights/', parameters('profileName'))]",
+                                        "location": "[parameters('location')]",
+                                        "dependsOn": [],
+                                        "properties": {
+                                            "storageAccountId": "[parameters('storageAccountId')]",<METRICS ARRAY><LOGS ARRAY>
+                                        }
+                                    }
+                                ],
+                                "outputs": {
+                                    "policy": {
+                                        "type": "string",
+                                        "value": "[concat(parameters('storageAccountId'), 'configured for diagnostic logs for ', ': ', parameters('name'))]"
+                                    }
+                                }
+                            },
+                            "parameters": {
+                                "location": {
+                                    "value": "[field('location')]"
+                                },
+                                "name": {
+                                    "value": "[field('<NAME OR FULLNAME>')]"
+                                },
+                                "storageAccountId": {
+                                    "value": "[parameters('storageAccountId')]"
+                                },
+                                "metricsEnabled": {
+                                    "value": "[parameters('metricsEnabled')]"
+                                },
+                                "logsEnabled": {
+                                    "value": "[parameters('logsEnabled')]"
+                                },
+                                "profileName": {
+                                    "value": "[parameters('profileName')]"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+'@
+if(!($ExportInitiative))
+{
+    $JSONVar = @'
+{
+
+'@
+}
+$JSONVar = $JSONVar + $JSONType + @'
+    "properties": {
+        "displayName": "<POLICY RESOURCE DISPLAY NAME>",
+        "mode": "Indexed",
+        "description": "This policy automatically deploys diagnostic settings to <POLICYDISPLAYNAME>.",
+        "metadata": {
+            "category": "Monitoring"
+        },
+        "parameters": <INSERT Parameters>,
+        "policyRule": <INSERT Policy Rules>
+    }
+}
+'@    
+
+    # Update Content according to type, categories, fullname or name
+    $JSONVar = $JSONVar.replace('<POLICY RESOURCE DISPLAY NAME>', $PolicyResourceDisplayName)
+    $JSONVar = $JSONVar.replace('<POLICYDISPLAYNAME>', $PolicyResourceDisplayName)
+
+    # Output content for Azure Rules file
+    $JSONRules = $JSONRules.replace('<RESOURCE TYPE>', $ResourceType)
+    $JSONRULES = $JSONRULES.replace('<METRICS ARRAY>', $metricsArray)
+    $JSONRULES = $JSONRULES.replace('<LOGS ARRAY>', $logsArray)
+    $JSONRULES = $JSONRules.replace('<NAME OR FULLNAME>', $nameField)
+    $JSONRULES = $JSONRULES.Replace('<RESOURCE KIND>', $JSONKind)
+    $JSONRULES = $JSONRULES.Replace('<RESOURCE KIND>', $Kind)
+
+    # Merge components to build azurepolicy output content
+    $AzurePolicyJSON = $JSONVar
+    $AzurePolicyJSON = $AzurePolicyJSON.Replace('<INSERT Parameters>', $JSONPARMS)
+    $AzurePolicyJSON = $AzurePolicyJSON.Replace('<INSERT Policy Rules>',$JSONRULES)
+
+    # Let's do some additional work if this is a policy initiative we are working on
+    If($ExportInitiative)
+    {
+        # Retrieve parameters from Rules JSON for processing in initiative
+        $RuleParams = $JSONRules | ConvertFrom-Json 
+        # Unescape non printable chars from string / JSON payload
+        $RuleParams = $RuleParams.then.details.deployment.properties.parameters
+        $RuleParams = $RuleParams |convertto-Json | ForEach-Object { [System.Text.RegularExpressions.Regex]::Unescape($_) }
+        
+        # Now add additional brackets to ensure ARM template doesn't get confused
+        $AzurePolicyJSON = $AzurePolicyJSON.Replace(': "[field', ': "' + '[[field')
+        $AzurePolicyJSON = $AzurePolicyJSON.Replace(': "[last', ': "' + '[[last')
+        $AzurePolicyJSON = $AzurePolicyJSON.Replace(': "[parameters', ': "' + '[[parameters')
+        $AzurePolicyJSON = $AzurePolicyJSON.Replace(': "[name', ': "' + '[[name')
+        $AzurePolicyJSON = $AzurePolicyJSON.Replace(': "[concat', ': "' + '[[concat')
+        
+        # Clean up Init params variable
+        $RuleParams = $RuleParams.Replace('"[field', '"[[field')
+        $RuleParams = $RuleParams.Replace('"[last', '"[[last')
+        $RuleParams = $RuleParams.Replace('"[parameters', '"[[parameters')
+        $RuleParams = $RuleParams.Replace('"[name', '"[[name')
+        $RuleParams = $RuleParams.Replace('"[concat', '"[[concat')
+    }
+
+    # Build the separate JSON payloads into an array
+    $JSONARRAY += $JSONPARMS
+    $JSONARRAY += $JSONRULES
+    $JSONARRAY += $AzurePolicyJSON
+    $JSONARRAY += $initParams
+
+    # Send the payload
+    $JSONARRAY    
+}
+
+# Build File Name / paths for Azure Policy Exports
 function Parse-ResourceType
 (
     [Parameter(Mandatory=$True)]
@@ -1472,16 +1772,17 @@ else
 }
 Set-Location $CurrentDir
 # Determine where the script is running - build export dir
-IF(!$($ExportEH) -and !($ExportLA) -and !($ValidateJSON))
+IF(!$($ExportEH) -and !($ExportLA) -and !($ExportStorage) -and !($ValidateJSON))
 {
-    write-host "Nothing to do - please use either parameter -ExportLA, -ExportEH, -ValidateJSON (or all three) to export / validate policies" -ForegroundColor Yellow
+    write-host "Nothing to do - please use either parameter -ExportLA, -ExportEH, -ExportStorage, -ValidateJSON (or all four) to export / validate policies" -ForegroundColor Yellow
     Set-Location $CurrentDir
     exit
 }
 
-if($ExportInitiative -and $ExportEH -and $ExportLA)
+# An initiative cannot support multiple sink points due to variance in parameters for each type of policy
+if($ExportInitiative -and (($($ExportEH.IsPresent) + $($ExportLA.IsPresent) + $($ExportStorage.IsPresent)) -gt 1))
 {
-    Write-host "Initiative Export option does not support Log Analytics and Event Hub Policies together.  Please choose parameter -ExportLA or -ExportEH only" -ForegroundColor Yellow
+    Write-host "Initiative Export option does not support more than one sink point for Policies together.  Please choose parameter -ExportLA, -ExportStorage, or -ExportEH only when using -ExportInitiative" -ForegroundColor Yellow
     break
 }
 
@@ -1646,7 +1947,7 @@ if($ManagementGroup)
 [array]$DiagnosticCapable=@()
 [array]$Logcategories = @()
 
-IF($($ExportEH) -or ($ExportLA))
+IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
 {
     # Build parameter set according to parameters provided.
     $FindResourceParams = @{}
@@ -1951,6 +2252,81 @@ IF($($ExportEH) -or ($ExportLA))
                     $PolicyJSON[2] | Out-File "$($ExportDir)\$($RPVar[0])\azurepolicy.json" -Force
                 }
             }
+            # Export for Storage Sink
+            if($ExportStorage)
+            {
+                $sinkDest = "Storage"
+                $RPVar = Parse-ResourceType -resourceType $Type.ResourceType -sinkDest $sinkDest
+                # If we have a kind for the resourceType let's add that to the policy evaluation rules (and add it to the displayname)
+                if($Type.Kind)
+                {
+                    $PolicyResourceDisplayName = "Apply Diagnostic Settings for $($Type.ResourceType) `($($Type.Kind)`) to a Regional Storage Account"
+                }
+                elseif (!($Type.Kind))
+                {
+                    $PolicyResourceDisplayName = "Apply Diagnostic Settings for $($Type.ResourceType) to a Regional Storage Account"
+                }
+                
+                # Create a Policy Name that is 64 chars (or less) using hash as an option [unique and repeatable]
+                $ShortNameRT = Create-Hash -StringToHash $PolicyResourceDisplayName
+
+                if($ExportInitiative)
+                {
+                    $JSONType = @'
+{
+    "type": "Microsoft.Authorization/policyDefinitions",
+    "apiVersion": "2019-09-01",
+    "name": "<SHORT NAME OF SERVICE>",
+
+'@
+                    $PolicyRSID = """[resourceId('Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
+                    $PolicyRSIDs = $PolicyRSIDs + "                "  + $PolicyRSID + "," + "`r`n"
+                    $JSONTYPE = $JSONType.replace("<SHORT NAME OF SERVICE>", "$($ShortNameRT)")
+                    $PolicyJSON = Update-StorageJSON -resourceType $Type.ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -JSONType $JSONType -ExportInitiative $ExportInitiative -kind $Type.Kind -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
+                    $PolicyBag = $PolicyBag + $PolicyJSON[2] +  ',' + "`r`n"
+                    $PolicyDefParam = @'
+                {
+                    "policyDefinitionId": <PolicyResoureceID>,
+                    <Policy Definition Parameters>
+                },
+'@
+                $PolicyDefParam = $PolicyDefParam.Replace("<PolicyResoureceID>", "$($PolicyRSID)")
+                $PolicyDefParam = $PolicyDefParam.Replace("<Policy Definition Parameters>", "$($PolicyJSON[3])")
+                $PolicyDefParams = $PolicyDefParams + $PolicyDefParam + "`r`n"
+            }
+            else {
+                $JSONType = ''
+                $PolicyJSON = Update-StorageJSON -resourceType $Type.ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -kind $Type.Kind -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
+            }
+                if(!($ExportInitiative))
+                {
+                    write-host "Exporting Storage Custom Azure Policy for resourceType: $($Type.ResourceType)" -ForegroundColor Yellow
+
+                    # Make sure export directory exists!
+                    if(!(Test-path "$($ExportDir)\$($RPVar[0])"))
+                    {
+                        try
+                        {
+                            $NULL = new-item -ItemType Directory -Path "$($ExportDir)\$($RPVar[0])"
+                        }
+                        catch
+                        {
+                            Write-Host "Failed to create output folder $ExportDir - exiting.." -ForegroundColor red 
+                            exit
+                        }
+                    }
+                    # Clean Up JSON
+                    $PolicyJSON[0] = Format-JSON -JSON $PolicyJSON[0]
+                    $PolicyJSON[1] = Format-JSON -JSON $PolicyJSON[1]
+                    $PolicyJSON[2] = Format-JSON -JSON $PolicyJSON[2]
+
+                    # outputting JSON for Azure Policy
+                    $PolicyJSON[0] | Out-File "$($ExportDir)\$($RPVar[0])\azurepolicy.parameters.json" -Force
+                    $PolicyJSON[1] | Out-File "$($ExportDir)\$($RPVar[0])\azurepolicy.rules.json" -Force
+                    $PolicyJSON[2] | Out-File "$($ExportDir)\$($RPVar[0])\azurepolicy.json" -Force
+                }
+            }
+
 
         }
     }
@@ -2038,6 +2414,36 @@ IF($($ExportEH) -or ($ExportLA))
             $PolicyJSON[2] | Out-File "$($ExportDir)\$($RPVar[0])\azurepolicy.json" -Force
 
         }
+        if($ExportStorage)
+        {
+            $RPVar = Parse-ResourceType -resourceType $ResourceType -sinkDest "Storage"
+            $PolicyJSON = Update-StorageJSON -resourceType $ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
+            write-host "Exporting Storage Custom Azure Policy for resourceType: $($ResourceType)" -ForegroundColor Yellow
+            
+            # Make sure export directory exists!
+            if(!(Test-path "$($ExportDir)\$($RPVar[0])"))
+            {
+                try
+                {
+                    $NULL = new-item -ItemType Directory -Path "$($ExportDir)\$($RPVar[0])"
+                }
+                catch
+                {
+                    Write-Host "Failed to create output folder $ExportDir - exiting.." -ForegroundColor red 
+                    exit
+                }
+            }
+            # Clean Up JSON
+            $PolicyJSON[0] = Format-JSON -JSON $PolicyJSON[0]
+            $PolicyJSON[1] = Format-JSON -JSON $PolicyJSON[1]
+            $PolicyJSON[2] = Format-JSON -JSON $PolicyJSON[2]
+
+            # outputting JSON for Azure Policy
+            $PolicyJSON[0] | Out-File "$($ExportDir)\$($RPVar[0])\azurepolicy.parameters.json" -Force
+            $PolicyJSON[1] | Out-File "$($ExportDir)\$($RPVar[0])\azurepolicy.rules.json" -Force
+            $PolicyJSON[2] | Out-File "$($ExportDir)\$($RPVar[0])\azurepolicy.json" -Force
+
+        }
     }
     if($ExportInitiative)
     {
@@ -2082,6 +2488,10 @@ IF($($ExportEH) -or ($ExportLA))
             if($sinkDest -eq "LA")
             {
                 $SinkName = "Log Analytics Workspace"
+            }
+            if($sinkDest -eq "Storage")
+            {
+                $SinkName = "Regional Storage Account"
             }
             $InitiativeDisplayName = "Azure Diagnostics Policy Initiative for $SinkName"
             $InitiativeName = Create-Hash -StringToHash $InitiativeDisplayName
