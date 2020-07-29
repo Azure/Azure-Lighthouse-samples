@@ -41,31 +41,64 @@
                 }   
             ]
         },
-        "rgName": {
-            "type": "string"
-        }              
+        "eligibleAuthorizations": { 
+            "type": "array", 
+            "metadata": { 
+                "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments" 
+            },
+           "defaultValue": [ 
+                { 
+                        "justInTimeAccessPolicy": { 
+                            "multiFactorAuthProvider": "Azure", 
+                            "maximumActivationDuration": "PT8H" 
+                        },
+                        "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                        "principalIdDisplayName": "PIM_Group",
+                        "roleDefinitionId": "36243c78-bf99-498c-9df9-86d9f8d28608" 
+                        
+                }                    
+            ]    
+        },   
+        "resourceGroups": {
+            "type": "array",
+            "defaultValue": [
+                {
+                    "rgName": "test"
+                },
+                {
+                    "rgName": "test 2"
+                },
+                {
+                    "rgName": "test 3"
+                }
+            ] 
+        }             
     },
     "variables": {
-        "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
-        "mspAssignmentName": "[guid(parameters('rgName'))]"
+        "mspRegistrationName": "[guid(parameters('mspOfferName'))]"
     },
     "resources": [
         {
             "type": "Microsoft.ManagedServices/registrationDefinitions",
-            "apiVersion": "2019-06-01",
+            "apiVersion": "2020-02-01-preview",
             "name": "[variables('mspRegistrationName')]",
             "properties": {
                 "registrationDefinitionName": "[parameters('mspOfferName')]",
                 "description": "[parameters('mspOfferDescription')]",
                 "managedByTenantId": "[parameters('managedByTenantId')]",
-                "authorizations": "[parameters('authorizations')]"
+                "authorizations": "[parameters('authorizations')]",
+                "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]" 
             }
         },
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2018-05-01",
-            "name": "rgAssignment",
-            "resourceGroup": "[parameters('rgName')]",
+            "name": "[concat('rgAssignment', copyIndex())]",
+            "resourceGroup": "[parameters('resourceGroups')[copyIndex()].rgName]",
+            "copy": {
+                "name": "deploymentCopy",
+                "count": "[length(parameters('resourceGroups'))]"
+            },
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
             ],
@@ -78,8 +111,8 @@
                     "resources": [
                         {
                             "type": "Microsoft.ManagedServices/registrationAssignments",
-                            "apiVersion": "2019-06-01",
-                            "name": "[variables('mspAssignmentName')]",
+                            "apiVersion": "2020-02-01-preview",
+                            "name": "[guid(parameters('resourceGroups')[copyIndex()].rgName)]",
                             "properties": {
                                 "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
                             }
