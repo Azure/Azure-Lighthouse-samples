@@ -43,7 +43,21 @@
         
         },
         "resourceGroups": {
-            "type": "array"
+            "type": "array",
+              "metadata": { 
+                "description": "Note: resource groups must already exist in tenant" 
+            },
+             "defaultValue": [
+                {
+                    "rgName": "test"
+                },
+                {
+                    "rgName": "test2"
+                },
+                {
+                    "rgName": "test3"
+                }
+            ] 
         }              
     },
     "variables": {
