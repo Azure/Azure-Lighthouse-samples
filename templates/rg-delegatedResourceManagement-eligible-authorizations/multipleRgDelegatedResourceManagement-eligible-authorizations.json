@@ -133,6 +133,10 @@
         "authorizations": {
             "type": "array",
             "value": "[parameters('authorizations')]"
+        },
+        "eligibleAuthorizations": {
+            "type": "array",
+            "value": "[parameters('eligibleAuthorizations')]"
         }
     }
 }
