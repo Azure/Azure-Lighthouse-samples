@@ -9,7 +9,7 @@
             "value": "Relecloud Managed Services"
         },
         "managedByTenantId": {
-            "value": "<insert managing tenant id>"
+            "value": "<insert your managing tenant id>"
         },
         "authorizations": {
             "value": [
@@ -45,10 +45,10 @@
                     "rgName": "test"
                 },
                 {
-                    "rgName": "test 2"
+                    "rgName": "test2"
                 },
                 {
-                    "rgName": "test 3"
+                    "rgName": "test3"
                 }
             ]
         }
