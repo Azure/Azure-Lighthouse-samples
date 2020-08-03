@@ -1,0 +1,76 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "listOfAllowedTenants": {
+            "type": "array",
+            "metadata": {
+                "displayName": "Allowed tenants",
+                "description": "List of the managing tenant IDs that can be onboarded through Lighthouse"
+            }
+        }
+    },
+    "variables": {
+        "policyDefinitionName": "Enforce-Managing-Tenant-IDs-def",
+        "policyAssignmentName": "Enforce-Managing-Tenant-IDs-def-assignments"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "name": "[variables('policyDefinitionName')]",
+            "apiVersion": "2018-05-01",
+            "properties": {
+                "description": "Enforce tenants IDs (from the service provider) that can be onboarded through Lighthouse",
+                "displayName": "Enforce managing tenants IDs",
+                "mode": "All",
+                "parameters": {
+                    "listOfAllowedTenants": {
+                        "type": "Array",
+                        "metadata": {
+                            "displayName": "Allowed tenants",
+                            "description": "List of the tenants IDs that can be onboarded through Lighthouse"
+                        }
+                    }
+                },
+                "policyRule": {
+                    "if": {
+                        "allOf": [
+                            {
+                                "field": "type",
+                                "equals": "Microsoft.ManagedServices/registrationDefinitions"
+                            },
+                            {
+                                "not": {
+                                    "field": "Microsoft.ManagedServices/registrationDefinitions/managedByTenantId",
+                                    "in": "[[parameters('listOfAllowedTenants')]"
+                                }
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "deny"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/policyAssignments",
+            "apiVersion": "2018-05-01",
+            "name": "[variables('policyAssignmentName')]",
+            "dependsOn": [
+                "[variables('policyDefinitionName')]"
+            ],
+            "properties": {
+                "description": "Enforce tenant IDs (from the service provider) that can be onboarded through Lighthouse",
+                "displayName": "Enforce managing tenant IDs",
+                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions/', variables('policyDefinitionName'))]",
+                "scope": "[subscription().id]",
+                "parameters": {
+                    "listOfAllowedTenants": {
+                      "value": "[parameters('listOfAllowedTenants')]"
+                    }
+                }
+            }
+        }
+    ]
+}
