@@ -96,7 +96,7 @@
                                         "equals": "Microsoft.ManagedServices/registrationDefinitions"
                                     },
                                     {
-                                        "field": "Microsoft.ManagedServices/registrationAssignments/registrationDefinition.managedByTenantId",
+                                        "field": "Microsoft.ManagedServices/registrationAssignments/registrationDefinitionProperties.managedByTenantId",
                                         "equals": "[[parameters('managedByTenantId')]"
                                     }
                                 ]
