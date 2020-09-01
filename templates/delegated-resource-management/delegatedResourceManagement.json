@@ -78,11 +78,7 @@
         },
         "authorizations": {
             "type": "array",
-            "value": "[parameters('authorizations')]",
-             "delegatedRoleDefinitionIds": [
-                        "b24988ac-6180-42a0-ab88-20f7382dd24c",
-                        "92aaf0da-9dab-42b6-94a3-d43ce8d16293"
-                    ]
+            "value": "[parameters('authorizations')]"
         }
         
     }
