@@ -1,0 +1,178 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "managedByTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Add the tenant id provided by the MSP"
+            }
+        },
+        "managedByName": {
+            "type": "string",
+            "metadata": {
+                "description": "Add the tenant name of the provided MSP"
+            }
+        },
+        "managedByDescription": {
+            "type": "string",
+            "metadata": {
+                "description": "Add the description of the offer provided by the MSP"
+            }
+        },
+        "managedByAuthorizations": {
+            "type": "array",
+            "metadata": {
+                "description": "Add the authZ array provided by the MSP"
+            }
+        }
+    },
+    "variables": {
+        "policyDefinitionName": "Enable-Azure-Lighthouse",
+        "rbacOwner": "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2018-05-01",
+            "name": "[variables('policyDefinitionName')]",
+            "properties": {
+                "description": "Policy to enforce Lighthouse on subscriptions, delegating mgmt to MSP",
+                "displayName": "Enforce Lighthouse on subscriptions",
+                "mode": "All",
+                "policyType": "Custom",
+                "parameters": {
+                    "managedByTenantId": {
+                        "type": "string",                        
+                        "defaultValue" : "[parameters('managedByTenantId')]",
+                        "metadata": {                            
+                            "description": "Add the tenant id provided by the MSP"
+                        }
+                    },
+                    "managedByName": {
+                        "type": "string",
+                        "defaultValue" : "[parameters('managedByName')]",
+                        "metadata": {
+                            "description": "Add the tenant name of the provided MSP"
+                        }
+                    },
+                    "managedByDescription": {
+                        "type": "string",
+                        "defaultValue" : "[parameters('managedByDescription')]",
+                        "metadata": {
+                            "description": "Add the description of the offer provided by the MSP"
+                        }
+                    },
+                    "managedByAuthorizations": {
+                        "type": "array",
+                        "defaultValue" : "[parameters('managedByAuthorizations')]",
+                        "metadata": {
+                            "description": "Add the authZ array provided by the MSP"
+                        }
+                    }
+                },
+                "policyRule": {
+                    "if": {
+                        "allOf": [
+                            {
+                                "field": "type",
+                                "equals": "Microsoft.Resources/subscriptions"
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "deployIfNotExists",
+                        "details": {
+                            "type": "Microsoft.ManagedServices/registrationDefinitions",
+                            "deploymentScope": "Subscription",
+                            "existenceScope": "Subscription",
+                            "roleDefinitionIds": [
+                                "[concat('/providers/Microsoft.Authorization/roleDefinitions/', variables('rbacOwner'))]"
+                            ],
+                            "existenceCondition": {
+                                "allOf": [
+                                    {
+                                        "field": "type",
+                                        "equals": "Microsoft.ManagedServices/registrationDefinitions"
+                                    },
+                                    {
+                                        "field": "Microsoft.ManagedServices/registrationAssignments/registrationDefinitionProperties.managedByTenantId",
+                                        "equals": "[[parameters('managedByTenantId')]"
+                                    }
+                                ]
+                            },
+                            "deployment": {
+                                "location": "westeurope",
+                                "properties": {
+                                    "mode": "incremental",
+                                    "parameters": {
+                                        "managedByTenantId": {
+                                            "value": "[[parameters('managedByTenantId')]"
+                                        },
+                                        "managedByName": {
+                                            "value": "[[parameters('managedByName')]"
+                                        },
+                                        "managedByDescription": {
+                                            "value": "[[parameters('managedByDescription')]"
+                                        },
+                                        "managedByAuthorizations": {
+                                            "value": "[[parameters('managedByAuthorizations')]"
+                                        }
+                                    },
+                                    "template": {
+                                        "$schema": "https://schema.management.azure.com/2018-05-01/subscriptionDeploymentTemplate.json#",
+                                        "contentVersion": "1.0.0.0",
+                                        "parameters": {
+                                            "managedByTenantId": {
+                                                "type": "string"
+                                            },
+                                            "managedByName": {
+                                                "type": "string"
+                                            },
+                                            "managedByDescription": {
+                                                "type": "string"
+                                            },
+                                            "managedByAuthorizations": {
+                                                "type": "array"
+                                            }
+                                        },
+                                        "variables": {
+                                            "managedByRegistrationName": "[[guid(parameters('managedByName'))]",
+                                            "managedByAssignmentName": "[[guid(parameters('managedByName'))]"
+                                        },
+                                        "resources": [
+                                            {
+                                                "type": "Microsoft.ManagedServices/registrationDefinitions",
+                                                "apiVersion": "2019-06-01",
+                                                "name": "[[variables('managedByRegistrationName')]",
+                                                "properties": {
+                                                    "registrationDefinitionName": "[[parameters('managedByName')]",
+                                                    "description": "[[parameters('managedByDescription')]",
+                                                    "managedByTenantId": "[[parameters('managedByTenantId')]",
+                                                    "authorizations": "[[parameters('managedByAuthorizations')]"
+                                                }
+                                            },
+                                            {
+                                                "type": "Microsoft.ManagedServices/registrationAssignments",
+                                                "apiVersion": "2019-06-01",
+                                                "name": "[[variables('managedByAssignmentName')]",
+                                                "dependsOn": [
+                                                    "[[variables('managedByRegistrationName')]"
+                                                ],
+                                                "properties": {
+                                                    "registrationDefinitionId": "[[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('managedByRegistrationName'))]"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
