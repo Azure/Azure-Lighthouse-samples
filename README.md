@@ -6,7 +6,7 @@ Azure Lighthouse provides capabilities to perform cross-tenant management at sca
 This repository contains samples to help you use Azure Resource Manager to configure [Azure delegated resource management](https://docs.microsoft.com/azure/lighthouse/concepts/azure-delegated-resource-management) and to configure monitoring and management of customer environments.
 
 The templates shown below can be used to [onboard a customer to Azure Lighthouse](https://docs.microsoft.com/en-us/azure/lighthouse/how-to/onboard-customer). You can deploy these manually, or use the "Deploy to Azure" buttons to deploy directly in the Azure portal.
-
+# Deploy to Azure buttons
 
 Name | Description   | Auto-deploy   | Manual deploy |
 -----| ------------- |--------------- |------- 
@@ -18,7 +18,8 @@ Name | Description   | Auto-deploy   | Manual deploy |
 | Azure Lighthouse + Azure AD PIM - Multiple Resource Group Deployment | onboard multiple *resource groups* using **Azure AD PIM** (preview) | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Lighthouse-samples%2Fmaster%2Ftemplates%2Frg-delegatedResourceManagement-eligible-authorizations%2FmultipleRgDelegatedResourceManagement-eligible-authorizations.json) | [templates](https://github.com/Azure/Azure-Lighthouse-samples/tree/master/templates/rg-delegatedResourceManagement-eligible-authorizations)
 
 **Note for customers using Azure Lighthouse+Azure AD PIM:**  *All Azure Lighthouse+Azure AD PIM functionality is currently in **private preview**. If you are a customer onboarding your scopes to Azure Lighthouse for management and your service provider is using Azure AD PIM functionality, you may see a governance API error message if your subscription is not explictily registered (allowed-list of subscriptions) for Azure Lighthouse+PIM preview. Simply request to enable the subscription your are trying to delegate for the preview to resolve this error by sending an email to azurelighthouse@microsoft.com*
-
+# Instructions for deploy to Azure buttons
+To use, clone this repository, and follow [these](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-azure-button) instructions to update the links for your customers.
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
