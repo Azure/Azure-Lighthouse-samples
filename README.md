@@ -18,7 +18,8 @@ Name | Description   | Auto-deploy   | Manual deploy |
 | Azure Lighthouse + Azure AD PIM - Multiple Resource Group Deployment | onboard multiple *resource groups* using **Azure AD PIM** (preview) | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Lighthouse-samples%2Fmaster%2Ftemplates%2Frg-delegatedResourceManagement-eligible-authorizations%2FmultipleRgDelegatedResourceManagement-eligible-authorizations.json) | [templates](https://github.com/Azure/Azure-Lighthouse-samples/tree/master/templates/rg-delegatedResourceManagement-eligible-authorizations)
 
 **Note for customers using Azure Lighthouse+Azure AD PIM:**  *All Azure Lighthouse+Azure AD PIM functionality is currently in **private preview**. If you are a customer onboarding your scopes to Azure Lighthouse for management and your service provider is using Azure AD PIM functionality, you may see a governance API error message if your subscription is not explictily registered (allowed-list of subscriptions) for Azure Lighthouse+PIM preview. Simply request to enable the subscription your are trying to delegate for the preview to resolve this error by sending an email to azurelighthouse@microsoft.com*
-**Special Instructions for deploy to Azure buttons(for MSPs)**
+
+**Special Instructions (for MSPs):**
 To customize, fork this repository, and follow [these](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-azure-button) instructions to update the links to enable your customers to deploy your templates into their Azure environments.
 # Contributing
 
