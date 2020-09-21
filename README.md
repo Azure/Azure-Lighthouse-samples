@@ -6,7 +6,7 @@ Azure Lighthouse provides capabilities to perform cross-tenant management at sca
 This repository contains samples to help you use Azure Resource Manager to configure [Azure delegated resource management](https://docs.microsoft.com/azure/lighthouse/concepts/azure-delegated-resource-management) and to configure monitoring and management of customer environments.
 
 The templates shown below can be used to [onboard a customer to Azure Lighthouse](https://docs.microsoft.com/en-us/azure/lighthouse/how-to/onboard-customer). You can deploy these manually, or use the "Deploy to Azure" buttons to deploy directly in the Azure portal.
-
+# Deploy to Azure buttons
 
 Name | Description   | Auto-deploy   | Manual deploy |
 -----| ------------- |--------------- |------- 
@@ -19,6 +19,8 @@ Name | Description   | Auto-deploy   | Manual deploy |
 
 **Note for customers using Azure Lighthouse+Azure AD PIM:**  *All Azure Lighthouse+Azure AD PIM functionality is currently in **private preview**. If you are a customer onboarding your scopes to Azure Lighthouse for management and your service provider is using Azure AD PIM functionality, you may see a governance API error message if your subscription is not explictily registered (allowed-list of subscriptions) for Azure Lighthouse+PIM preview. Simply request to enable the subscription your are trying to delegate for the preview to resolve this error by sending an email to azurelighthouse@microsoft.com*
 
+**Special Instructions (for MSPs):**
+To customize, fork this repository, and follow [these](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-azure-button) instructions to update the links to enable your customers to deploy your templates into their Azure environments.
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
