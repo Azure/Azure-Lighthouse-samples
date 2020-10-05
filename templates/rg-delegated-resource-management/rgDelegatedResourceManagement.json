@@ -79,7 +79,7 @@
                         {
                             "type": "Microsoft.ManagedServices/registrationAssignments",
                             "apiVersion": "2019-06-01",
-                            "name": "[variables('mspAssignmentName')]",
+                            "name": "[guid(resourceId('Microsoft.Resources/ResourceGroups', parameters('rgName')), parameters('mspOfferName'))]",
                             "properties": {
                                 "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
                             }
