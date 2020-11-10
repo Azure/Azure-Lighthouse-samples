@@ -1,0 +1,595 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "## Azure Activity by Domain"
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "{Subscriptions}"
+        ],
+        "parameters": [
+          {
+            "id": "f12c5d79-48c1-4adb-bad4-d4cc248f7fb9",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscriptions",
+            "type": 6,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "e04bd6ba-c1ad-466c-9835-c9f01dacdbe1",
+            "version": "KqlParameterItem/1.0",
+            "name": "LogsWorkspaces",
+            "label": "Logs Workspaces",
+            "type": 5,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
+            "crossComponentResources": [
+              "{Subscriptions}"
+            ],
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "showDefault": false
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "d2345891-fe3f-4dbd-8973-ec31877d6540",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2419200000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ]
+            },
+            "label": "Time Range"
+          },
+          {
+            "id": "e3371197-6349-4c7a-94dd-ade511d2f9c3",
+            "version": "KqlParameterItem/1.0",
+            "name": "Domain",
+            "type": 1,
+            "description": "This is the domain that is doing the activities. Ex: @microsoft.com",
+            "value": ""
+          }
+        ],
+        "style": "pills",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources"
+      },
+      "name": "parameters - 3"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "parameters": [
+          {
+            "id": "baf69cfc-7e11-40c8-ba36-4afc8dff4e96",
+            "version": "KqlParameterItem/1.0",
+            "name": "Category",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "AzureActivity\n| distinct CategoryValue",
+            "crossComponentResources": [
+              "{LogsWorkspaces}"
+            ],
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "d6c4e664-76b1-4590-9ad4-1a33a1f9a52a",
+            "version": "KqlParameterItem/1.0",
+            "name": "Level",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "AzureActivity\n| distinct Level",
+            "crossComponentResources": [
+              "{LogsWorkspaces}"
+            ],
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "7e70bb8e-c1c0-4ed2-8f99-9adc886e1b7c",
+            "version": "KqlParameterItem/1.0",
+            "name": "ActivityStatus",
+            "label": "Activity Status",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "AzureActivity\n| distinct ActivityStatusValue",
+            "crossComponentResources": [
+              "{LogsWorkspaces}"
+            ],
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "0a17640e-c29b-430b-a496-ed3782828cdc",
+            "version": "KqlParameterItem/1.0",
+            "name": "ResourceProvider",
+            "label": "Resource Provider",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "AzureActivity\n| distinct ResourceProvider",
+            "crossComponentResources": [
+              "{LogsWorkspaces}"
+            ],
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "48712642-451b-4bc2-9dfc-5841bf36d3f1",
+            "version": "KqlParameterItem/1.0",
+            "name": "ResourceGroup",
+            "label": "Resource Group",
+            "type": 2,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "AzureActivity\r\n| distinct ResourceGroup",
+            "crossComponentResources": [
+              "{LogsWorkspaces}"
+            ],
+            "value": [
+              "value::all"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "bba0187f-0b64-415b-9526-1d4f5139d447",
+            "version": "KqlParameterItem/1.0",
+            "name": "Resource",
+            "label": "Azure Resource",
+            "type": 5,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "AzureActivity\r\n| distinct ResourceId",
+            "crossComponentResources": [
+              "{LogsWorkspaces}"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "selectAllValue": "*",
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 604800000
+            },
+            "timeContextFromParameter": "TimeRange",
+            "defaultValue": "value::all",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 4"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "### Activity Count by Level"
+      },
+      "name": "text - 8"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\n| where CategoryValue in ({Category}) or '*' in ({Category})\n| where ActivityStatusValue in ({ActivityStatus}) or '*' in ({ActivityStatus})\n| where ResourceProvider in ({ResourceProvider}) or '*' in ({ResourceProvider})\n| where ResourceGroup in ({ResourceGroup}) or '*' in ({ResourceGroup})\n| where Caller like \"{Domain}\"\n| summarize count() by Level",
+        "size": 3,
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Level",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "count_",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 1,
+                "maximumSignificantDigits": 2
+              }
+            }
+          },
+          "rightContent": {
+            "columnMatch": "Level",
+            "formatter": 18,
+            "formatOptions": {
+              "showIcon": true,
+              "thresholdsOptions": "icons",
+              "thresholdsGrid": [
+                {
+                  "operator": "==",
+                  "thresholdValue": "Error",
+                  "representation": "3",
+                  "text": ""
+                },
+                {
+                  "operator": "==",
+                  "thresholdValue": "Warning",
+                  "representation": "2",
+                  "text": ""
+                },
+                {
+                  "operator": "Default",
+                  "thresholdValue": null,
+                  "representation": "1",
+                  "text": ""
+                }
+              ]
+            }
+          },
+          "showBorder": false
+        }
+      },
+      "name": "query - 0"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "### Activity Counts by User"
+      },
+      "name": "text - 7"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| where CategoryValue in ({Category}) or '*' in ({Category})\r\n| where Level in ({Level}) or '*' in ({Level})\r\n| where ActivityStatusValue in ({ActivityStatus}) or '*' in ({ActivityStatus})\r\n| where ResourceProvider in ({ResourceProvider}) or '*' in ({ResourceProvider})\r\n| where ResourceGroup in ({ResourceGroup}) or '*' in ({ResourceGroup})\r\n| where Caller like \"{Domain}\"\r\n| summarize count(Caller) by Caller",
+        "size": 3,
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Caller",
+            "formatter": 1,
+            "formatOptions": {
+              "linkTarget": "GenericDetails",
+              "linkIsContextBlade": true,
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "count_Caller",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "auto",
+              "showIcon": true
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "maximumSignificantDigits": 3,
+                "maximumFractionDigits": 2
+              }
+            }
+          },
+          "showBorder": true,
+          "sortCriteriaField": "count_Caller",
+          "sortOrderField": 2,
+          "rowLimit": 20
+        }
+      },
+      "name": "query - 6"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "### Activities count through time by user"
+      },
+      "name": "text - 9"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| where CategoryValue in ({Category}) or '*' in ({Category})\r\n| where Level in ({Level}) or '*' in ({Level})\r\n| where ActivityStatusValue in ({ActivityStatus}) or '*' in ({ActivityStatus})\r\n| where ResourceProvider in ({ResourceProvider}) or '*' in ({ResourceProvider})\r\n| where ResourceGroup in ({ResourceGroup}) or '*' in ({ResourceGroup})\r\n| where Caller like \"{Domain}\"\r\n| make-series Count = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by Caller",
+        "size": 1,
+        "color": "lightBlue",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "timeBrushParameterName": "FilterTimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "visualization": "areachart"
+      },
+      "showPin": true,
+      "name": "query - 5"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "### Activities detailed"
+      },
+      "name": "text - 10"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\n| where CategoryValue in ({Category}) or '*' in ({Category})\n| where Level in ({Level}) or '*' in ({Level})\n| where ActivityStatusValue in ({ActivityStatus}) or '*' in ({ActivityStatus})\n| where ResourceProvider in ({ResourceProvider}) or '*' in ({ResourceProvider})\n| where ResourceGroup in ({ResourceGroup}) or '*' in ({ResourceGroup})\n| extend Packed = pack_all()\n| extend TimeFromNow = now() - EventSubmissionTimestamp\n| extend TimeAgo = strcat(case(TimeFromNow < 2m, strcat(toint(TimeFromNow / 1m), ' seconds'), TimeFromNow < 2h, strcat(toint(TimeFromNow / 1m), ' minutes'), TimeFromNow < 2d, strcat(toint(TimeFromNow / 1h), ' hours'), strcat(toint(TimeFromNow / 1d), ' days')), ' ago')\n| where Caller like \"{Domain}\"\n| order by EventSubmissionTimestamp\n| project [\"Operation Name\"] = OperationName, [\"Operation Value\"] = OperationNameValue, Caller, [\"Category\"] = CategoryValue, [\"Resource Group\"] = ResourceGroup, ResourceId, [\"Resource Provider\"]=ResourceProviderValue, Level, [\"Activity Status\"]=ActivityStatusValue, [\"Time\"]=strcat('🕒', TimeAgo), [\"Details\"]=Packed",
+        "size": 2,
+        "showAnalytics": true,
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "exportFieldName": "Pack",
+        "exportParameterName": "PackedRow",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Level",
+              "formatter": 18,
+              "formatOptions": {
+                "showIcon": true,
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Error",
+                    "representation": "error",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Warning",
+                    "representation": "2",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "1",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            },
+            {
+              "columnMatch": "Details",
+              "formatter": 7,
+              "formatOptions": {
+                "linkTarget": "CellDetails",
+                "linkLabel": "🔍 View Details",
+                "linkIsContextBlade": true,
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Packed",
+              "formatter": 5,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Count",
+              "formatter": 3,
+              "formatOptions": {
+                "min": 0,
+                "palette": "lightBlue",
+                "showIcon": true
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": false,
+                  "maximumSignificantDigits": 2
+                }
+              }
+            }
+          ],
+          "filter": true
+        }
+      },
+      "showPin": true,
+      "name": "query - 1"
+    }
+  ],
+  "fallbackResourceIds": [
+    "Azure Monitor"
+  ],
+  "fromTemplateId": "solutions-https://azmonsolutions.blob.core.windows.net/workbooktemplates/Azure%20Activity%20Log/Azure%20Activity%20Log.workbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
