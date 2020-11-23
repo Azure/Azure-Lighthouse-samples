@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 1.3
 
 .GUID efd1a650-e9e6-4cd3-beca-cc0e940cc672
 
@@ -26,8 +26,8 @@ https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-May 01, 2019 
-    Initial
+November 03, 2020 1.3
+    Fixed a bug with REST API logic
 #>
 
 <#  
@@ -49,6 +49,9 @@ May 01, 2019
 .PARAMETER Interval
     Specify an interval in seconds (default is 20) to check for status of trigger - loops until complete.
 
+.PARAMETER ADO
+    This parameter allows you to run this script in Azure DevOps pipeline utilizing an SPN
+
 .EXAMPLE
   .\Trigger-PolicyEvaluation.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ResourceGroup "RGName" interval 25
   Trigger evaluation against the scope of a Resource Group, with a specified subscriptionID with an interval of 25 seconds
@@ -62,12 +65,29 @@ May 01, 2019
   Prompt for a subscriptionId from a menu listing of all available subscriptions within the context of the logged in user.
   Trigger evaluation against the scope of a subscriptionID selected.
 
-.NOTES
-   AUTHOR: Jim Britt Senior Program Manager - Azure CAT 
-   LASTEDIT: May 01, 2019
+.EXAMPLE
+  .\Trigger-PolicyEvaluation.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ADO
+  Trigger evaluation against the scope of a subscriptionID while leveraging an SPN in an ADO pipeline
 
-May 01, 2019
-   Initial
+.NOTES
+   AUTHOR: Jim Britt Principal Program Manager - Azure CXP API (Azure Product Improvement) 
+   LASTEDIT: November 03, 2020 1.3
+    Fixed a bug with REST API logic
+
+   October 30, 2020 1.2 - Updates
+    Changed REST API Token creation due to a recent breaking change I observed where the old way no longer worked.
+    If you have any issues with this change, please let me know here on Github (https://aka.ms/AzPolicyScripts)
+
+   August 13, 2020 1.1
+    Added parameter -ADO
+    This parameter provides the option to run this script leveraging an SPN in Azure DevOps.
+
+    Special Thanks to Nikolay Sucheninov and the VIAcode team for working to get these scripts
+    integrated and operational in Azure DevOps to streamline "Policy as Code" processes with version
+    drift detection and remediation through automation!
+
+   May 01, 2019
+    Initial
 
 .LINK
     This script posted to and discussed at the following locations:
@@ -76,6 +96,13 @@ May 01, 2019
 
 param
 (
+    [Parameter(Mandatory=$false)]
+    [ValidateSet("AzureChinaCloud","AzureCloud","AzureGermanCloud","AzureUSGovernment")]
+    [string]$Environment = "AzureCloud",
+
+    [Parameter(Mandatory = $False)]
+    [switch]$ADO = $False,
+
     # Provide SubscriptionID to bypass subscription listing
     [Parameter(Mandatory = $False)]
     [guid]$SubscriptionId,
@@ -118,12 +145,20 @@ function BuildBody
     $BuildBody
 }  
 # Login to Azure - if already logged in, use existing credentials.
+If($ADO){write-host "Leveraging ADO switch for SPN authentication in Azure DevOps"}
 Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
 try
 {
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    $token = $currentContext.TokenCache.ReadItems() | Where-Object {$_.tenantid -eq $currentContext.Tenant.Id} 
+
+    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
+    else
+    {
+        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
+    }
     if($Token.ExpiresOn -lt $(get-date))
     {
         "Logging you out due to cached token is expired for REST AUTH.  Re-run script"
@@ -132,11 +167,16 @@ try
 }
 catch
 {
-    $null = Login-AzAccount
+    $null = Login-AzAccount -Environment $Environment
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    $token = $currentContext.TokenCache.ReadItems() | Where-Object {$_.tenantid -eq $currentContext.Tenant.Id} 
-
+    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
+    else
+    {
+        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
+    }
 }
 
 If($AzureLogin -and !($SubscriptionID))
@@ -200,7 +240,8 @@ elseif ($ResourceGroupName)
     $RESOURCEID = "/subscriptions/$Subscription/$ResourceGroup"
 
 }
-$PostURI = "https://management.azure.com/$RESOURCEID/providers/Microsoft.PolicyInsights/policyStates/latest/triggerEvaluation?api-version=2018-07-01-preview"
+$azEnvironment = Get-AzEnvironment -Name $Environment
+$PostURI = "$($azEnvironment.ResourceManagerUrl)$RESOURCEID/providers/Microsoft.PolicyInsights/policyStates/latest/triggerEvaluation?api-version=2018-07-01-preview"
 
 try
 {
