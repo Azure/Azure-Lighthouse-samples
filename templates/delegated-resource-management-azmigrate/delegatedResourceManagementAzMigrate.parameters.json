@@ -24,11 +24,11 @@
                     "principalIdDisplayName": "PIM_Group"
                     
                 },
-				{
-					"principalId": "052cfbee-f04e-4c5a-95f5-9fd6444f254b", 
+		{
+		    "principalId": "052cfbee-f04e-4c5a-95f5-9fd6444f254b", 
                     "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
                     "principalIdDisplayName": "MSP_Contributor_Access_Migration"
-				},
+		},
                 {
                     "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244",
                     "principalIdDisplayName": "PIM_Group",
