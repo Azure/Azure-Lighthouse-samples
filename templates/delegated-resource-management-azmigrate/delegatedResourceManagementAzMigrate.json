@@ -1,0 +1,89 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mspOfferName": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify a unique name for your offer"
+            },
+            "defaultValue": "Relecloud Migration Services"
+
+        },
+        "mspOfferDescription": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Managed Service Provider offering"
+            },
+            "defaultValue": "Discovery, Assessment and Migration using Azure Migrate"
+        },
+        "managedByTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify the tenant id of the Managed Service Provider"
+            },
+            "defaultValue": "fbcdd0f3-dc82-4cee-bcde-7301d24e9bf6"
+        },
+        "authorizations": {
+            "type": "array",
+            "metadata": {
+                "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
+            },
+            "defaultValue": [
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+                    "principalIdDisplayName": "PIM_Group" 
+                }, 
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
+                    "principalIdDisplayName": "PIM_Group" 
+                },
+				{
+					"principalId": "052cfbee-f04e-4c5a-95f5-9fd6444f254b", 
+                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+                    "principalIdDisplayName": "MSP_Contributor_Access_Migration"
+				}	
+            ]
+        }              
+    },
+    "variables": {
+        "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
+        "mspAssignmentName": "[guid(parameters('mspOfferName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ManagedServices/registrationDefinitions",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('mspRegistrationName')]",
+            "properties": {
+                "registrationDefinitionName": "[parameters('mspOfferName')]",
+                "description": "[parameters('mspOfferDescription')]",
+                "managedByTenantId": "[parameters('managedByTenantId')]",
+                "authorizations": "[parameters('authorizations')]"
+            }
+        },
+        {
+            "type": "Microsoft.ManagedServices/registrationAssignments",
+            "apiVersion": "2019-09-01",
+            "name": "[variables('mspAssignmentName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+            ],
+            "properties": {
+                "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+            }
+        }
+    ],
+    "outputs": {
+        "mspOfferName": {
+            "type": "string",
+            "value": "[concat('Managed by', ' ', parameters('mspOfferName'))]"
+        },
+        "authorizations": {
+            "type": "array",
+            "value": "[parameters('authorizations')]"
+        }
+    }
+}
