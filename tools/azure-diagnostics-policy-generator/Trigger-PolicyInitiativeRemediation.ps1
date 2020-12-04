@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.1
+.VERSION 1.6
 
 .GUID 5d5c9fe8-85a7-427d-88e7-6c44f61271ce
 
@@ -15,7 +15,7 @@
 .LICENSEURI 
 
 .PROJECTURI 
-https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
+https://aka.ms/AzPolicyScripts
 
 .ICONURI 
 
@@ -26,8 +26,8 @@ https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-July 2, 2020 1.1 - Updates
-    Small visual bug on variable prompt when providing PolicyAssignmentId parameter value
+November 11, 2020 1.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
 #>
 
 <#  
@@ -53,6 +53,10 @@ July 2, 2020 1.1 - Updates
 .PARAMETER PolicyAssignmentId
     This parameter allows you to provide which Policy Assignment (for Policy Initiative) that you want to remediate
 
+.PARAMETER ADO
+    This parameter allows you to execute this script within an Azure DevOps Pipeline utilizing an SPN
+    (no op - deprecated)
+
 .EXAMPLE
   .\Trigger-PolicyInitiativeRemediation.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" 
   With a specified subscriptionID as scope, the script will prompt which policy assignment to select for remediation
@@ -72,8 +76,45 @@ July 2, 2020 1.1 - Updates
 
   Will remedate a policy initiaive given the ManagementGroupId as scope, the specific PolicytAssignmentId and use force to execute silently.
 
+.EXAMPLE
+  .\Trigger-PolicyInitiativeRemediation.ps1 -Environment AzureUSGovernment -ManagementGroup -ManagementGroupId "MyManagementGroup" `
+  -PolicyAssignmentId '/providers/Microsoft.Management/managementGroups/MyManagementGroup/providers/Microsoft.Authorization/policyAssignments/pa1' `
+  -force
+
+  Will do everything the previous example accomplished but targeting AzureUSGovernment Cloud instead of AzureCloud
+
 .NOTES
-   AUTHOR: Jim Britt Senior Program Manager - Azure CXP API (Azure Product Improvement) 
+   AUTHOR: Jim Britt Principal Program Manager - Azure CXP API (Azure Product Improvement) 
+   November 11, 2020 1.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
+    
+   November 03, 2020 1.5
+    Fixed a bug with REST API logic
+
+   October 30, 2020 1.4
+    Changed REST API Token creation due to a recent breaking change I observed where the old way no longer worked.
+    If you have any issues with this change, please let me know here on Github (https://aka.ms/AzPolicyScripts)
+    
+   August 13, 2020 1.3
+    Added parameter -ADO
+    This parameter provides the option to run this script leveraging an SPN in Azure DevOps.
+
+    Special Thanks to Nikolay Sucheninov and the VIAcode team for working to get these scripts
+    integrated and operational in Azure DevOps to streamline "Policy as Code" processes with version
+    drift detection and remediation through automation!
+
+   August 4, 2020 1.2 - Updates
+    Environment Added to script to allow for other clouds beyond Azure Commercial
+    AzureChinaCloud, AzureCloud,AzureGermanCloud,AzureUSGovernment
+    
+    Special Thanks to Michael Pullen for your direct addition to the script to support
+    additional Azure Cloud reach for this script! :) 
+    
+    Thank you Matt Taylor, Paul Harrison, and Abel Cruz for your collaboration in this area
+    to debug, test, validate, and push on getting Azure Government supported with these scripts!
+
+    Bug fix for enumeration and execution of remediation of Policy Initiatives when Management Group is used
+    
    July 2, 2020 1.1 - Updates
     Small visual bug on variable prompt when providing PolicyAssignmentId parameter value
 
@@ -90,6 +131,23 @@ July 2, 2020 1.1 - Updates
 
 param
 (
+    # Determine which Azure Cloud to leverage for script - default is AzureCloud
+    [Parameter(ParameterSetName='Default',Mandatory = $False)]
+    [Parameter(ParameterSetName='ManagementGroup')]
+    [Parameter(ParameterSetName='Subscription')]
+    [Parameter(ParameterSetName='Initiative')]
+    [Parameter(Mandatory=$false)]
+    [ValidateSet("AzureChinaCloud","AzureCloud","AzureGermanCloud","AzureUSGovernment")]
+    [string]$Environment = "AzureCloud",
+
+    # Run inside Azure DevOps Pipeline with SPN Auth
+    [Parameter(ParameterSetName='Default',Mandatory = $False)]
+    [Parameter(ParameterSetName='ManagementGroup')]
+    [Parameter(ParameterSetName='Subscription')]
+    [Parameter(ParameterSetName='Initiative')]
+    [Parameter(Mandatory=$false)]
+    [switch]$ADO = $False,
+
     # Specify a policy initiative assignment ID
     # Example for Management Group Scope: '/providers/Microsoft.Management/managementGroups/MyManagementGroup/providers/Microsoft.Authorization/policyAssignments/pa1'
     # Example for Subscription Scope: '/subscriptions/fd2323a9-2324-4d2a-90f6-7e6c2fe03512/providers/Microsoft.Authorization/policyAssignments/17ddefc76ecd4fe5b26455bb'
@@ -162,30 +220,40 @@ else
 Set-Location $CurrentDir
 
 # Login to Azure - if already logged in, use existing credentials.
+If($ADO){write-host "ADO switch deprecated and no longer necessary" -ForegroundColor Yellow}
 Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
 try
 {
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    $currentSub = $(Get-AzContext).Subscription.Name
-    $token = $currentContext.TokenCache.ReadItems() | Where-Object {$_.tenantid -eq $currentContext.Tenant.Id} 
-    if($Token.ExpiresOn -lt $(get-date))
-    {
-        "Logging you out due to cached token is expired for REST AUTH.  Re-run script"
-        $null = Disconnect-AzAccount        
-        break
-    } 
+
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 catch
 {
-    $null = Login-AzAccount
+    $null = Login-AzAccount -Environment $Environment
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    $token = $currentContext.TokenCache.ReadItems() | Where-Object {$_.tenantid -eq $currentContext.Tenant.Id} 
-
+    
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 
-# Authenticate to Azure if not already authenticated 
+Try
+{
+    $Subscription = Get-AzSubscription -SubscriptionId $subscriptionId
+}
+catch
+{
+    Write-Host "Subscription not found"
+    break
+}
+
 # Ensure this is the subscription where your Azure Policy Initiative is located
 If($AzureLogin -and !($SubscriptionID) -and !($ManagementGroup))
 {
@@ -290,8 +358,9 @@ if($ManagementGroup)
     $SubScriptionsToProcess =@()
     if($ManagementGroupID)
     {
+        $azEnvironment = Get-AzEnvironment -Name $Environment
         $GetBody = BuildBody -method "GET"
-        $MGSubsDetailsURI = "https://management.azure.com/providers/microsoft.management/managementGroups/$($ManagementGroupID)/descendants?api-version=2018-03-01-preview"
+        $MGSubsDetailsURI = "$($azEnvironment.ResourceManagerUrl)providers/microsoft.management/managementGroups/$($ManagementGroupID)/descendants?api-version=2018-03-01-preview"
         $GetResults = (Invoke-RestMethod -uri $MGSubsDetailsURI @GetBody).value
         foreach($Result in $GetResults| Where-Object {$_.type -eq "/subscriptions"})
         {
@@ -359,16 +428,9 @@ If(!($PolicyAssignmentID))
 }
 if($PolicyAssignmentID)
 {
-    try{
-        if($ManagementGroupID)
-        {
-            $PolicyAssignment = Get-AzPolicyAssignment -scope $Scope -Id $PolicyAssignmentID
-        }
-        if($SubscriptionId)
-        {
-            $PolicyAssignment = Get-AzPolicyAssignment -Id $PolicyAssignmentID
-        }
-
+    try
+    {
+        $PolicyAssignment = Get-AzPolicyAssignment -Id $PolicyAssignmentID
         $PolicyDefinition = $(Get-AzPolicySetDefinition -id $PolicyAssignment.Properties.policyDefinitionId)
         $PolicyDefinitionRefIDs = $($PolicyDefinition.Properties.policyDefinitions).policyDefinitionReferenceId
         Write-Host "Selecting Azure Policy Initiative: $($PolicyAssignMent.Properties.displayName)..." -ForegroundColor Cyan

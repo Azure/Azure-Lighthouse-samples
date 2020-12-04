@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 2.1
+.VERSION 2.6
 
 .GUID e0962947-bf3c-4ed4-be3b-39cb7f6348c6
 
@@ -26,8 +26,8 @@ https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-July 16, 2020 2.1
-    Storage Added as a sink to policy and policy initiative ARM template exports
+November 11, 2020 2.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
 #>
 
 <#  
@@ -40,6 +40,16 @@ July 16, 2020 2.1
   This script takes a SubscriptionID, ResourceType, ResourceGroup as parameters, analyzes the subscription or
   specific ResourceGroup defined for the resources specified in $Resources, and builds a custom policy for 
   diagnostic metrics/logs for Event Hubs, Storage and Log Analytics as sink points for selected resource types.
+
+.PARAMETER ManagementGroupDeployment
+    Leverage this switch to export the ARM template for your policy initiative to
+    support Management Group as a scope target.  This will place all resources (Custom Policies and Policy Initiative)
+    in the same MG upon deployment via "New-AzManagementGroupDeployment"
+    Ex: New-AzManagementGroupDeployment -Name DiagAzurePolicyInit -ManagementGroupId CatDev -Location eastus -TemplateFile .\MgTemplateExportMG.json -ManagementGroupDeployment -TargetMGID CatDev
+
+.PARAMETER Environment
+    The cloud environment that you are needing to analyze. Default is AzureCloud
+    Available clouds: AzureChinaCloud, AzureCloud,AzureGermanCloud,AzureUSGovernment  
 
 .PARAMETER SubscriptionId
     The subscriptionID of the Azure Subscription that contains the resources you want to analyze
@@ -102,6 +112,10 @@ July 16, 2020 2.1
     This parameter allows you to determine the outputted ARM template file name for your policy initiative. This can be useful when
     leveraged with an ADO pipeline and test automation to validate policy drift according to a baselined exported Policy Initiatve that
     has been promoted into production versus what your environment states it should be configured as (at current state of running the script)
+
+.PARAMETER ADO
+    This parameter allows you to run this script in Azure DevOps pipeline utilizing an SPN
+    (no op - deprecated)
 
 .EXAMPLE
   .\Create-AzDiagPolicy.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ResourceType "Microsoft.Sql/servers/databases" -ResourceGroup "RGName" -ExportLA -ExportEH
@@ -171,9 +185,63 @@ July 16, 2020 2.1
 .\Create-AzDiagPolicy.ps1 -ExportAll -ExportStorage -ValidateJSON -ExportDir ".\LogPolicies" -ManagementGroup -AllRegions -ExportInitiative -InitiativeDisplayName "Azure Diagnostics Policy Initiative for a Regional Storage Account" -TemplateFileName 'ARMTemplateExport'
   Same as previous example, but exporting to a storage account as a sink point.
 
+.EXAMPLE
+.\Create-AzDiagPolicy.ps1 -Environment AzureUSGovernment -ExportAll -ExportStorage -ValidateJSON -ExportDir ".\LogPolicies" -ManagementGroup -AllRegions -ExportInitiative -InitiativeDisplayName "Azure Diagnostics Policy Initiative for a Regional Storage Account" -TemplateFileName 'ARMTemplateExport'
+  Same as previous example, but leveraging Azure Government Cloud.
+
+.EXAMPLE
+.\Create-AzDiagPolicy.ps1 -ExportDir .\LogPolicies -ExportAll -ExportLA -ExportInitiative -TemplateFileName MgTemplateExportMG -ManagementGroupDeployment -AllRegions
+  Exports an ARM Template Policy Initiative supporting a Management Group supporting all Logs for Log Analytics and all regions supported
+  NOTE: Use the following example to deploy this template to a target management group
+
+  New-AzManagementGroupDeployment -Name DiagAzurePolicyInit -ManagementGroupId MyMGID -Location eastus -TemplateFile .\MgTemplateExportMG.json -TargetMGID MyMGID
+
 .NOTES
-   AUTHOR: Jim Britt Senior Program Manager - Azure CXP API (Azure Product Improvement) 
-   LASTEDIT: July 16, 2020 2.1
+   AUTHOR: Jim Britt Principal Program Manager - Azure CXP API (Azure Product Improvement) 
+   LASTEDIT: November 11, 2020 2.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
+    
+   November 03, 2020 2.5
+    Fixed a bug with REST API logic
+
+   October 30, 2020 2.4
+    Added parameter -ManagementGroupDeployment for ARM Export
+    This parameter switch provides the option to export an ARM Template Policy Initiative that supports a Management
+    group target scope.
+
+    Special Thanks to Kristian Nese (https://github.com/krnese) for my sounding board and using his big brain to work through some of the ARM goo.
+    Thank you Kamil (https://github.com/kwiecek) to for pushing for this feature to help improve the experience for our customersk leveraging it 
+    and actively collaborating on improving our final enhancement!
+    
+    Thank you Dimitri Lider (https://github.com/dimilider) for the additional collaboration and also looking out for improving this script!
+
+    Changed REST API Token creation due to a recent breaking change I observed where the old way no longer worked.
+    If you have any issues with this change, please let me know here on Github (https://aka.ms/AzPolicyScripts)
+
+   August 13, 2020 2.3
+    Added parameter -ADO
+    This parameter provides the option to run this script leveraging an SPN in Azure DevOps.
+
+    Special Thanks to Nikolay Sucheninov and the VIAcode team for working to get these scripts
+    integrated and operational in Azure DevOps to streamline "Policy as Code" processes with version
+    drift detection and remediation through automation!
+
+   August 03, 2020 2.2
+    Environment Added to script to allow for other clouds beyond Azure Commercial
+    AzureChinaCloud, AzureCloud,AzureGermanCloud,AzureUSGovernment
+    
+    Special Thanks to Michael Pullen for your direct addition to the script to support
+    additional Azure Cloud reach for this script! :) 
+    
+    Thank you Matt Taylor, Paul Harrison, and Abel Cruz for your collaboration in this area
+    to debug, test, validate, and push on getting Azure Government supported with these scripts!
+
+    Fixed Bug with "Kind" and not exporting all policies for ResourceProviders that leverage
+    Kind with same RP (ex: Azure SQL DB, Azure SQL DW)
+
+    Special Thanks to Mo Barry for helping me isolate this bug in the script
+
+   July 16, 2020 2.1
     Storage Added as a sink to policy and policy initiative ARM template exports
 
    June 07, 2020 2.0
@@ -253,6 +321,31 @@ July 16, 2020 2.1
 
 param
 (
+    # Environment defines what cloud you are analyzing (defaults to AzureCloud)
+    [Parameter(ParameterSetName='Default',Mandatory = $False)]
+    [Parameter(ParameterSetName='Subscription')]
+    [Parameter(ParameterSetName='Tenant')]
+    [Parameter(ParameterSetName='ManagementGroup')]
+    [Parameter(ParameterSetName='Export')]
+    [ValidateSet("AzureChinaCloud","AzureCloud","AzureGermanCloud","AzureUSGovernment")]
+    [string]$Environment = "AzureCloud",    # Environment defines what cloud you are analyzing (defaults to AzureCloud)
+
+    # Use this switch to enable the script to run via SPN in an Azure DevOps Pipeline
+    [Parameter(ParameterSetName='Default',Mandatory = $False)]
+    [Parameter(ParameterSetName='Subscription')]
+    [Parameter(ParameterSetName='Tenant')]
+    [Parameter(ParameterSetName='ManagementGroup')]
+    [Parameter(ParameterSetName='Export')]
+    [switch]$ADO = $False,
+
+    # Default of $False assumes subscription as target - if $True will modify intiative properties to support MG target
+    [Parameter(ParameterSetName='Default',Mandatory = $False)]
+    [Parameter(ParameterSetName='Subscription')]
+    [Parameter(ParameterSetName='Tenant')]
+    [Parameter(ParameterSetName='ManagementGroup')]
+    [Parameter(ParameterSetName='Export')]
+    [switch]$ManagementGroupDeployment=$False,
+
     # Export Directory Path for Artifacts - if not set - will default to script directory
     [Parameter(ParameterSetName='Default',Mandatory = $False)]
     [Parameter(ParameterSetName='Subscription')]
@@ -423,9 +516,23 @@ function Get-ResourceType (
         $logs = $false #initialize logs flag to $false
         
         #Establish URI to gather resources
-        $URI = "https://management.azure.com$($Resource.ResourceId)/providers/microsoft.insights/diagnosticSettingsCategories/?api-version=2017-05-01-preview"
+        # Determine cloud and ensure proper REST Endpoint defined
+        $azEnvironment = Get-AzEnvironment -Name $Environment
+        $URI = "$($azEnvironment.ResourceManagerUrl)$($Resource.ResourceId.substring(1))/providers/microsoft.insights/diagnosticSettingsCategories/?api-version=2017-05-01-preview" 
+        #Write-Host "URI: $($URI)"
         
-        if ($analysis.resourceType -notcontains $resource.ResourceType)
+        $Exists = $false
+        if($Analysis)
+        {
+            foreach($A in $Analysis)
+            {
+                if($($Resource.resourceType -eq $A.resourcetype) -and $($Resource.Kind -eq $A.Kind))
+                {
+                    $exists = $True                    
+                }
+            }
+        }
+        if (!($Exists))
         {
             try
             {
@@ -1623,20 +1730,30 @@ function Parse-ResourceType
     [Parameter(Mandatory=$True)]
     [string]$resourceType,
     [Parameter(Mandatory=$True)]
-    [string]$sinkDest
+    [string]$sinkDest,
+    [Parameter(Mandatory=$False)]
+    [string]$kind
+    
 
 )
 {
+    $KindDirVar = $null
+    if($Kind)
+    {
+        $pattern = '[^a-zA-Z0-9.-]'
+        $KindDirVar = $Kind -replace $pattern, '-'
+        $KindDirVar = "-" + $KindDirVar
+    }
     $ReturnVar=@()
     if($ResourceType.Split("/").count -eq 3)
     {
         $nameField = "fullName"
-        $DirectoryNameBase = "Apply-Diag-Settings-$sinkDest-" + $($resourceType.Split("/", 3))[0] + "-" + $($resourceType.Split("/", 3))[1] + "-" + $($resourceType.Split("/", 3))[2]
+        $DirectoryNameBase = "Apply-Diag-Settings-$sinkDest-" + $($resourceType.Split("/", 3))[0] + "-" + $($resourceType.Split("/", 3))[1] + "-" + $($resourceType.Split("/", 3))[2] + $KindDirVar
     }
     if($ResourceType.Split("/").count -eq 2)
     {
         $nameField = "name"
-        $DirectoryNameBase = "Apply-Diag-Settings-$sinkDest-" + $($resourceType.Split("/", 2))[0] + "-" + $($resourceType.Split("/", 2))[1]
+        $DirectoryNameBase = "Apply-Diag-Settings-$sinkDest-" + $($resourceType.Split("/", 2))[0] + "-" + $($resourceType.Split("/", 2))[1] + $KindDirVar
     }
     $ReturnVar += $DirectoryNameBase
     $ReturnVar += $nameField
@@ -1674,7 +1791,7 @@ function New-PolicyInitiative
     [Parameter(Mandatory=$True)]
     [string]$PolicyBag,
     [Parameter(Mandatory=$True)]
-    [string]$PolicySIDs,
+    [string]$PolicyRSIDs,
     [Parameter(Mandatory=$True)]
     [string]$PolicyDefParams,
     [Parameter(Mandatory=$True)]
@@ -1684,19 +1801,39 @@ function New-PolicyInitiative
     [Parameter(Mandatory=$True)]
     [string]$InitiativeDisplayName,
     [Parameter(Mandatory=$True)]
-    [string]$InitiativeName
+    [string]$InitiativeName,
+    [Parameter(Mandatory=$True)]
+    [boolean]$ManagementGroupDeployment
 )
 {
     # Scrub trailing commas
     $PolicyRSIDs = $PolicyRSIDs.substring(0,$PolicyRSIDs.length -3)
     $PolicyDefParams = $PolicyDefParams.substring(0,$PolicyDefParams.length -3)
     
+    # Adding support for Management Group deployment scope.  If parameter switch is used for -ManagementGroupDeployment, we'll put the right JSON in to support
+    if($ManagementGroupDeployment -eq $true)
+    {
+        $MGJSONParam = @'
+{
+    "TargetMGID": {
+        "type": "string",
+        "defaultValue": ""
+    }
+}
+'@
+        $schema = "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#"
+    }
+    else
+    {
+        $MGJSONParam = '{}'
+        $schema = "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#"
+    }
     # Build Template reference for Policy Initiative
     $InitiativeTemplate = @'
 {
-    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "$schema": "<SUB OR MG SCHEMA>",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
+    "parameters": <ManagementGroupID>,
     "resources": [
         <AzurePolicyPropertyBag>
         {
@@ -1728,6 +1865,8 @@ function New-PolicyInitiative
     $InitiativeTemplate = $InitiativeTemplate.Replace("<Policy INIT RESIDs>", $PolicyRSIDs)
     $InitiativeTemplate = $InitiativeTemplate.Replace("<ParametersGoHere>", $Parameters)
     $InitiativeTemplate = $InitiativeTemplate.Replace("<PolicyDefParams>", $PolicyDefParams)
+    $InitiativeTemplate = $InitiativeTemplate.Replace("<ManagementGroupID>", $MGJSONParam)
+    $InitiativeTemplate = $InitiativeTemplate.Replace("<SUB OR MG SCHEMA>", $schema)
 
     $InitiativeTemplate
 }
@@ -1796,30 +1935,40 @@ If(!($ExportDir))
 $SubScriptionsToProcess = $null
 
 # Login to Azure - if already logged in, use existing credentials.
+If($ADO){write-host "ADO switch deprecated and no longer necessary" -ForegroundColor Yellow}
 Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
 try
 {
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    $currentSub = $(Get-AzContext).Subscription.Name
-    $token = $currentContext.TokenCache.ReadItems() | Where-Object {$_.tenantid -eq $currentContext.Tenant.Id} 
-    if($Token.ExpiresOn -lt $(get-date))
-    {
-        "Logging you out due to cached token is expired for REST AUTH.  Re-run script"
-        $null = Disconnect-AzAccount        
-        break
-    } 
+
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 catch
 {
-    $null = Login-AzAccount
+    $null = Login-AzAccount -Environment $Environment
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    $token = $currentContext.TokenCache.ReadItems() | Where-Object {$_.tenantid -eq $currentContext.Tenant.Id} 
-
+    
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 
-# Authenticate to Azure if not already authenticated 
+Try
+{
+    $Subscription = Get-AzSubscription -SubscriptionId $subscriptionId
+}
+catch
+{
+    Write-Host "Subscription not found"
+    break
+}
+
 # Ensure this is the subscription where your Azure Resources are you want to send diagnostic data from
 If($AzureLogin -and !($SubscriptionID) -and !($Tenant) -and !($ManagementGroup))
 {
@@ -1928,8 +2077,10 @@ if($ManagementGroup)
     $SubScriptionsToProcess =@()
     if($ManagementGroupID)
     {
+        # Determine cloud and ensure proper REST Endpoint defined
+        $azEnvironment = Get-AzEnvironment -Name $Environment
         $GetBody = BuildBody -method "GET"
-        $MGSubsDetailsURI = "https://management.azure.com/providers/microsoft.management/managementGroups/$($ManagementGroupID)/descendants?api-version=2018-03-01-preview"
+        $MGSubsDetailsURI = "$($azEnvironment.ResourceManagerUrl)/providers/microsoft.management/managementGroups/$($ManagementGroupID)/descendants?api-version=2018-03-01-preview"
         $GetResults = (Invoke-RestMethod -uri $MGSubsDetailsURI @GetBody).value
         foreach($Result in $GetResults| Where-Object {$_.type -eq "/subscriptions"})
         {
@@ -2108,7 +2259,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
             if($ExportLA)
             {
                 $sinkDest = "LA"
-                $RPVar = Parse-ResourceType -resourceType $Type.ResourceType -sinkDest $sinkDest
+                $RPVar = Parse-ResourceType -resourceType $Type.ResourceType -sinkDest $sinkDest -kind $Type.Kind
                 # If we have a kind for the resourceType let's add that to the policy evaluation rules (and add it to the displayname)
                 if($Type.Kind)
                 {
@@ -2131,8 +2282,17 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
     "name": "<SHORT NAME OF SERVICE>",
 
 '@
+                    # If we are exporting for Management Group - update RSID to support management group navigation
+                    if($ManagementGroupDeployment)
+                    {
+                        $PolicyRSID = """[concat('/providers/Microsoft.Management/managementGroups/', parameters('TargetMGID'), '/providers/Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
+                    }
+                    # If not exporting for MG, leverage standard ResourceID
+                    else {
+                        $PolicyRSID = """[resourceId('Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
+                    }
+                        
                     
-                    $PolicyRSID = """[resourceId('Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
                     $PolicyRSIDs = $PolicyRSIDs + "                "  + $PolicyRSID + "," + "`r`n"
                     $JSONTYPE = $JSONType.replace("<SHORT NAME OF SERVICE>", "$($ShortNameRT)")
                     $PolicyJSON = Update-LogAnalyticsJSON -resourceType $Type.ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -JSONType $JSONType -ExportInitiative $ExportInitiative -kind $Type.Kind -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
@@ -2182,7 +2342,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
             if($ExportEH)
             {
                 $sinkDest = "EH"
-                $RPVar = Parse-ResourceType -resourceType $Type.ResourceType -sinkDest $sinkDest
+                $RPVar = Parse-ResourceType -resourceType $Type.ResourceType -sinkDest $sinkDest -kind $Type.Kind
                 # If we have a kind for the resourceType let's add that to the policy evaluation rules (and add it to the displayname)
                 if($Type.Kind)
                 {
@@ -2256,7 +2416,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
             if($ExportStorage)
             {
                 $sinkDest = "Storage"
-                $RPVar = Parse-ResourceType -resourceType $Type.ResourceType -sinkDest $sinkDest
+                $RPVar = Parse-ResourceType -resourceType $Type.ResourceType -sinkDest $sinkDest -kind $Type.Kind
                 # If we have a kind for the resourceType let's add that to the policy evaluation rules (and add it to the displayname)
                 if($Type.Kind)
                 {
@@ -2358,7 +2518,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
         }
         if($ExportLA)
         {
-            $RPVar = Parse-ResourceType -resourceType $ResourceType -sinkDest "LA"
+            $RPVar = Parse-ResourceType -resourceType $ResourceType -sinkDest "LA" -kind $Type.Kind
             $PolicyJSON = Update-LogAnalyticsJSON -resourceType $ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
             write-host "Exporting Log Analytics Custom Azure Policy for resourceType: $($ResourceType)" -ForegroundColor Yellow
             # Make sure export directory exists!
@@ -2386,7 +2546,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
         }
         if($ExportEH)
         {
-            $RPVar = Parse-ResourceType -resourceType $ResourceType -sinkDest "EH"
+            $RPVar = Parse-ResourceType -resourceType $ResourceType -sinkDest "EH" -kind $Type.Kind
             $PolicyJSON = Update-EventHubJSON -resourceType $ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
             write-host "Exporting Event Hub Custom Azure Policy for resourceType: $($ResourceType)" -ForegroundColor Yellow
             
@@ -2416,7 +2576,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
         }
         if($ExportStorage)
         {
-            $RPVar = Parse-ResourceType -resourceType $ResourceType -sinkDest "Storage"
+            $RPVar = Parse-ResourceType -resourceType $ResourceType -sinkDest "Storage" -kind $Type.Kind
             $PolicyJSON = Update-StorageJSON -resourceType $ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
             write-host "Exporting Storage Custom Azure Policy for resourceType: $($ResourceType)" -ForegroundColor Yellow
             
@@ -2498,7 +2658,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
         }
 
         # Building the Policy Initiative (Note only one sink point per policy initiative [Log Analytics or EventHub])
-        $PolicyInititiative = New-PolicyInitiative -PolicyBag $PolicyBag -PolicySIDs $PolicyRSIDs -PolicyDefParams $PolicyDefParams -Parameters $PolicyJSON[0] -sinkDest $sinkDest -InitiativeDisplayName $InitiativeDisplayName -InitiativeName $InitiativeName
+        $PolicyInititiative = New-PolicyInitiative -PolicyBag $PolicyBag -PolicyRSIDs $PolicyRSIDs -PolicyDefParams $PolicyDefParams -Parameters $PolicyJSON[0] -sinkDest $sinkDest -InitiativeDisplayName $InitiativeDisplayName -InitiativeName $InitiativeName -ManagementGroupDeployment $ManagementGroupDeployment
         
         # Ensure JSON is formatted on export
         $PolicyInititiative = Format-JSON -JSON $PolicyInititiative
@@ -2531,10 +2691,16 @@ IF($ValidateJSON)
     }
 }
 $Stop = (Get-Date)
-write-host "Setting Context back to initial subscription $CurrentSub"
+$Count = 0
 try
 {
-    $Null = Set-AzContext -Subscription $CurrentSub
+    While(($ContextSet -ne $currentSub) -or ($Count -ge 5))
+    {
+        write-host "`nSetting Context back to initial subscription $CurrentSub"
+        $SetContext = Set-AzContext -Subscription $CurrentSub
+        $ContextSet = $SetContext.Subscription.Name
+        $Count++
+    }
 }
 catch
 {
