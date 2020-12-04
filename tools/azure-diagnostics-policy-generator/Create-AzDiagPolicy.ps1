@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 2.5
+.VERSION 2.6
 
 .GUID e0962947-bf3c-4ed4-be3b-39cb7f6348c6
 
@@ -26,8 +26,8 @@ https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-November 03, 2020 2.5
-    Fixed a bug with REST API logic
+November 11, 2020 2.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
 #>
 
 <#  
@@ -115,6 +115,7 @@ November 03, 2020 2.5
 
 .PARAMETER ADO
     This parameter allows you to run this script in Azure DevOps pipeline utilizing an SPN
+    (no op - deprecated)
 
 .EXAMPLE
   .\Create-AzDiagPolicy.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ResourceType "Microsoft.Sql/servers/databases" -ResourceGroup "RGName" -ExportLA -ExportEH
@@ -189,10 +190,6 @@ November 03, 2020 2.5
   Same as previous example, but leveraging Azure Government Cloud.
 
 .EXAMPLE
-.\Create-AzDiagPolicy.ps1 -ADO -Environment AzureUSGovernment -ExportAll -ExportStorage -ValidateJSON -ExportDir ".\LogPolicies" -ManagementGroup -AllRegions -ExportInitiative -InitiativeDisplayName "Azure Diagnostics Policy Initiative for a Regional Storage Account" -TemplateFileName 'ARMTemplateExport'
-  Same as previous example, but enabling the script to run in Azure DevOps
-
-.EXAMPLE
 .\Create-AzDiagPolicy.ps1 -ExportDir .\LogPolicies -ExportAll -ExportLA -ExportInitiative -TemplateFileName MgTemplateExportMG -ManagementGroupDeployment -AllRegions
   Exports an ARM Template Policy Initiative supporting a Management Group supporting all Logs for Log Analytics and all regions supported
   NOTE: Use the following example to deploy this template to a target management group
@@ -201,7 +198,10 @@ November 03, 2020 2.5
 
 .NOTES
    AUTHOR: Jim Britt Principal Program Manager - Azure CXP API (Azure Product Improvement) 
-   LASTEDIT: November 03, 2020 2.5
+   LASTEDIT: November 11, 2020 2.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
+    
+   November 03, 2020 2.5
     Fixed a bug with REST API logic
 
    October 30, 2020 2.4
@@ -1935,41 +1935,40 @@ If(!($ExportDir))
 $SubScriptionsToProcess = $null
 
 # Login to Azure - if already logged in, use existing credentials.
-If($ADO){write-host "Leveraging ADO switch for SPN authentication in Azure DevOps"}
+If($ADO){write-host "ADO switch deprecated and no longer necessary" -ForegroundColor Yellow}
 Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
 try
 {
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
 
-    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
-    else
-    {
-        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
-    }
-    if($Token.ExpiresOn -lt $(get-date))
-    {
-        "Logging you out due to cached token is expired for REST AUTH.  Re-run script"
-        $null = Disconnect-AzAccount        
-    } 
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 catch
 {
     $null = Login-AzAccount -Environment $Environment
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
-    else
-    {
-        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
-    }
+    
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 
-# Authenticate to Azure if not already authenticated 
+Try
+{
+    $Subscription = Get-AzSubscription -SubscriptionId $subscriptionId
+}
+catch
+{
+    Write-Host "Subscription not found"
+    break
+}
+
 # Ensure this is the subscription where your Azure Resources are you want to send diagnostic data from
 If($AzureLogin -and !($SubscriptionID) -and !($Tenant) -and !($ManagementGroup))
 {

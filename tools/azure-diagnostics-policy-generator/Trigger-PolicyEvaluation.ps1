@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.3
+.VERSION 1.4
 
 .GUID efd1a650-e9e6-4cd3-beca-cc0e940cc672
 
@@ -26,8 +26,8 @@ https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-November 03, 2020 1.3
-    Fixed a bug with REST API logic
+November 11, 2020 1.4
+    Fixed more issues with REST API logic due to updates to Az cmdlets
 #>
 
 <#  
@@ -51,6 +51,7 @@ November 03, 2020 1.3
 
 .PARAMETER ADO
     This parameter allows you to run this script in Azure DevOps pipeline utilizing an SPN
+    (no op - deprecated)
 
 .EXAMPLE
   .\Trigger-PolicyEvaluation.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ResourceGroup "RGName" interval 25
@@ -65,13 +66,12 @@ November 03, 2020 1.3
   Prompt for a subscriptionId from a menu listing of all available subscriptions within the context of the logged in user.
   Trigger evaluation against the scope of a subscriptionID selected.
 
-.EXAMPLE
-  .\Trigger-PolicyEvaluation.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ADO
-  Trigger evaluation against the scope of a subscriptionID while leveraging an SPN in an ADO pipeline
-
 .NOTES
    AUTHOR: Jim Britt Principal Program Manager - Azure CXP API (Azure Product Improvement) 
-   LASTEDIT: November 03, 2020 1.3
+   LASTEDIT: November 11, 2020 1.4
+    Fixed more issues with REST API logic due to updates to Az cmdlets
+
+   November 03, 2020 1.3
     Fixed a bug with REST API logic
 
    October 30, 2020 1.2 - Updates
@@ -145,38 +145,38 @@ function BuildBody
     $BuildBody
 }  
 # Login to Azure - if already logged in, use existing credentials.
-If($ADO){write-host "Leveraging ADO switch for SPN authentication in Azure DevOps"}
+If($ADO){write-host "ADO switch deprecated and no longer necessary" -ForegroundColor Yellow}
 Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
 try
 {
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
 
-    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
-    else
-    {
-        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
-    }
-    if($Token.ExpiresOn -lt $(get-date))
-    {
-        "Logging you out due to cached token is expired for REST AUTH.  Re-run script"
-        $null = Disconnect-AzAccount        
-    } 
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 catch
 {
     $null = Login-AzAccount -Environment $Environment
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
-    else
-    {
-        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
-    }
+    
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
+}
+
+Try
+{
+    $Subscription = Get-AzSubscription -SubscriptionId $subscriptionId
+}
+catch
+{
+    Write-Host "Subscription not found"
+    break
 }
 
 If($AzureLogin -and !($SubscriptionID))

@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.3
+.VERSION 1.4
 
 .GUID 4071a36f-de54-4efb-a706-ea2ca98ced49
 
@@ -26,8 +26,8 @@ https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-November 03, 2020 1.3
-    Fixed a bug with REST API logic
+November 11, 2020 1.4
+    Fixed more issues with REST API logic due to updates to Az cmdlets
  #>
 
 <#  
@@ -54,7 +54,10 @@ Remove an Azure Policy Initiative from an Azure Subscription using an ARM Templa
 
 .NOTES
    AUTHOR: Jim Britt Principal Program Manager - Azure CXP API (Azure Product Improvement) 
-   LASTEDIT: November 03, 2020 1.3
+   LASTEDIT: November 11, 2020 1.4
+    Fixed more issues with REST API logic due to updates to Az cmdlets
+    
+   November 03, 2020 1.3
     Fixed a bug with REST API logic
 
    October 30, 2020 1.2 - Updates
@@ -102,38 +105,27 @@ $Initiative = $($ResultSet.resources | Where-Object {$_.type -eq "Microsoft.Auth
 $Policies = $($ResultSet.resources | Where-Object {$_.type -ne "Microsoft.Authorization/policySetDefinitions"})
 
 # Login to Azure - if already logged in, use existing credentials.
-If($ADO){write-host "Leveraging ADO switch for SPN authentication in Azure DevOps"}
 Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
 try
 {
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
 
-    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
-    else
-    {
-        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
-    }
-    if($Token.ExpiresOn -lt $(get-date))
-    {
-        "Logging you out due to cached token is expired for REST AUTH.  Re-run script"
-        $null = Disconnect-AzAccount        
-    } 
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 catch
 {
     $null = Login-AzAccount -Environment $Environment
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
-    else
-    {
-        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
-    }
+    
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 
 Try
@@ -145,7 +137,6 @@ catch
     Write-Host "Subscription not found"
     break
 }
-
 
 if ($PSCmdlet.ShouldContinue("This is destructive. We are about to delete Custom Policy Initiative `"$($Initiative.Properties.displayname)`" and $($Policies.count) Custom Policy resources from your subscription $SubscriptionId. Continue?","Remove `"$($Initiative.Properties.displayname)`" Initiative?") )
 {
