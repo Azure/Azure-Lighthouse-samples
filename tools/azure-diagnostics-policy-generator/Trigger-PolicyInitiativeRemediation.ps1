@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.5
+.VERSION 1.6
 
 .GUID 5d5c9fe8-85a7-427d-88e7-6c44f61271ce
 
@@ -26,8 +26,8 @@ https://aka.ms/AzPolicyScripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-November 03, 2020 1.5
-    Fixed a bug with REST API logic
+November 11, 2020 1.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
 #>
 
 <#  
@@ -55,6 +55,7 @@ November 03, 2020 1.5
 
 .PARAMETER ADO
     This parameter allows you to execute this script within an Azure DevOps Pipeline utilizing an SPN
+    (no op - deprecated)
 
 .EXAMPLE
   .\Trigger-PolicyInitiativeRemediation.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" 
@@ -82,15 +83,11 @@ November 03, 2020 1.5
 
   Will do everything the previous example accomplished but targeting AzureUSGovernment Cloud instead of AzureCloud
 
-.EXAMPLE
-  .\Trigger-PolicyInitiativeRemediation.ps1 -Environment AzureUSGovernment -ManagementGroup -ManagementGroupId "MyManagementGroup" `
-  -PolicyAssignmentId '/providers/Microsoft.Management/managementGroups/MyManagementGroup/providers/Microsoft.Authorization/policyAssignments/pa1' `
-  -force -ADO
-
-  Will do everything the previous example accomplished but provides the option to run this in Azure DevOps Pipeline with an SPN
-
 .NOTES
    AUTHOR: Jim Britt Principal Program Manager - Azure CXP API (Azure Product Improvement) 
+   November 11, 2020 1.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
+    
    November 03, 2020 1.5
     Fixed a bug with REST API logic
 
@@ -223,41 +220,40 @@ else
 Set-Location $CurrentDir
 
 # Login to Azure - if already logged in, use existing credentials.
-If($ADO){write-host "Leveraging ADO switch for SPN authentication in Azure DevOps"}
+If($ADO){write-host "ADO switch deprecated and no longer necessary" -ForegroundColor Yellow}
 Write-Host "Authenticating to Azure..." -ForegroundColor Cyan
 try
 {
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
 
-    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
-    else
-    {
-        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
-    }
-    if($Token.ExpiresOn -lt $(get-date))
-    {
-        "Logging you out due to cached token is expired for REST AUTH.  Re-run script"
-        $null = Disconnect-AzAccount        
-    } 
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 catch
 {
     $null = Login-AzAccount -Environment $Environment
     $AzureLogin = Get-AzSubscription
     $currentContext = Get-AzContext
-    if($ADO){$token = $currentContext.TokenCache.ReadItems()}
-    else
-    {
-        $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
-    }
+    
+    # Establish REST Token
+    $azProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+    $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($azProfile)
+    $token = $profileClient.AcquireAccessToken($currentContext.Subscription.TenantId)
 }
 
-# Authenticate to Azure if not already authenticated 
+Try
+{
+    $Subscription = Get-AzSubscription -SubscriptionId $subscriptionId
+}
+catch
+{
+    Write-Host "Subscription not found"
+    break
+}
+
 # Ensure this is the subscription where your Azure Policy Initiative is located
 If($AzureLogin -and !($SubscriptionID) -and !($ManagementGroup))
 {
