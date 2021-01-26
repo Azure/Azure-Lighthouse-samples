@@ -137,8 +137,8 @@
                                             }
                                         },
                                         "variables": {
-                                            "managedByRegistrationName": "[[guid(parameters('managedByName'))]",
-                                            "managedByAssignmentName": "[[guid(parameters('managedByName'))]"
+                                            "managedByRegistrationName": "[[guid('RegistrationName',parameters('managedByName'))]",
+                                            "managedByAssignmentName": "[[guid('AssignmentName',parameters('managedByName'))]"
                                         },
                                         "resources": [
                                             {
