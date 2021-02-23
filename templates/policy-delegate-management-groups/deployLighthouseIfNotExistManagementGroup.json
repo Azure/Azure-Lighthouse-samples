@@ -157,11 +157,10 @@
                                                 "apiVersion": "2019-06-01",
                                                 "name": "[[variables('managedByAssignmentName')]",
                                                 "dependsOn": [
-                                                    "[[variables('managedByRegistrationName')]"
-                                                ],
+                                                    "[[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('managedByRegistrationName'))]"], 
                                                 "properties": {
-                                                    "registrationDefinitionId": "[[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('managedByRegistrationName'))]"
-                                                }
+                                                    "registrationDefinitionId": "[[resourceId('Microsoft.ManagedServices/registrationDefinitions/',variables('managedByRegistrationName'))]"
+                                            }
                                             }
                                         ]
                                     }
