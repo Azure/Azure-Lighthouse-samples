@@ -1,0 +1,71 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mspOfferName": {
+            "value": "Test2f164ff8-043a-4680-a7fa-651761a8fda3"
+        },
+        "mspOfferDescription": {
+            "value": "Relecloud Managed Services"
+        },
+        "managedByTenantId": {
+            "value": "fbcdd0f3-dc82-4cee-bcde-7301d24e9bf6"
+        },
+        "authorizations": {
+            "value": [
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+                    "principalIdDisplayName": "PIM_Group" 
+                }, 
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
+                    "principalIdDisplayName": "PIM_Group" 
+                },
+                {
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244",
+                    "principalIdDisplayName": "PIM_Group",
+                    "roleDefinitionId": "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
+                    "delegatedRoleDefinitionIds": [
+                        "b24988ac-6180-42a0-ab88-20f7382dd24c",
+                        "92aaf0da-9dab-42b6-94a3-d43ce8d16293"
+                    ]
+                }   
+            ]
+        },
+        "eligibleAuthorizations":{
+            "value": [ 
+                { 
+                        "justInTimeAccessPolicy": { 
+                            "multiFactorAuthProvider": "Azure", 
+                            "maximumActivationDuration": "PT8H",
+                            "managedByTenantApprovers": [ 
+                                { 
+                                    "principalId": "ae3a5392-a2ec-4cc7-89cd-db23ac756900", 
+                                    "principalIdDisplayName": "PIM-Approvers" 
+                                } 
+                            ]
+                        },
+                        "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                        "principalIdDisplayName": "PIM_Group",
+                        "roleDefinitionId": "36243c78-bf99-498c-9df9-86d9f8d28608" 
+                        
+                }                    
+            ]    
+        },
+        "resourceGroups": {
+            "value": [
+                {
+                    "rgName": "test"
+                },
+                {
+                    "rgName": "test2"
+                },
+                {
+                    "rgName": "test3"
+                }
+            ]
+        }
+    }
+}
