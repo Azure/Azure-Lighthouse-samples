@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mspOfferName": {
+            "value": "Relecloud Managed Services"
+        },
+        "mspOfferDescription": {
+            "value": "Relecloud Managed Services"
+        },
+        "managedByTenantId": {
+            "value": "fbcdd0f3-dc82-4cee-bcde-7301d24e9bf6"
+        },
+        "authorizations": {
+            "value": [
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+                    "principalIdDisplayName": "PIM_Group" 
+                }, 
+                { 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
+                    "principalIdDisplayName": "PIM_Group" 
+                }
+                         
+            ]
+        }, 
+        "eligibleAuthorizations":{
+            "value": [ 
+                { 
+                        "justInTimeAccessPolicy": { 
+                            "multiFactorAuthProvider": "Azure", 
+                            "maximumActivationDuration": "PT8H",
+                            "managedByTenantApprovers": [ 
+                                { 
+                                    "principalId": "ae3a5392-a2ec-4cc7-89cd-db23ac756900", 
+                                    "principalIdDisplayName": "PIM-Approvers" 
+                                } 
+                            ]
+                        },
+                        "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                        "principalIdDisplayName": "PIM_Group",
+                        "roleDefinitionId": "36243c78-bf99-498c-9df9-86d9f8d28608"     
+                }                   
+            ]    
+        }
+    }
+}
