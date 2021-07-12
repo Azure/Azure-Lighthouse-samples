@@ -45,7 +45,7 @@
                             "maximumActivationDuration": "PT8H",
                             "managedByTenantApprovers": [ 
                                 { 
-                                    "principalId": "ae3a5392-a2ec-4cc7-89cd-db23ac756900", 
+                                    "principalId": "00000000-0000-0000-0000-000000000000", 
                                     "principalIdDisplayName": "PIM-Approvers" 
                                 } 
                             ]
