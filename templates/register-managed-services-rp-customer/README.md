@@ -2,7 +2,7 @@
 
 <br/>
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjoanabmartins%2FAzure-Lighthouse-samples%2Fmaster%2Ftemplates%2Fregister-managed-services-rp%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjoanabmartins%2FAzure-Lighthouse-samples%2Fmaster%2Ftemplates%2Fregister-managed-services-rp-customer%2Fazuredeploy.json)
 
  <br/>
 
@@ -35,7 +35,7 @@ New-AzRoleDefinition -InputFile "C:\CustomRoles\managedServicesRPRegister-role.j
 
 After you create the role, you will be able to assign that role to the logic app system assigned identity. You should assign it at the *root management group level*, so that it will find each new subscription. To find it better you can look for the name that you gave your logic app:
 <p align="left">
-  <img src="./media/roleassignment.png" >
+  <img src="./media/roleassignment.PNG" >
 </p>
 
 ## 
