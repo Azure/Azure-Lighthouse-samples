@@ -9,12 +9,12 @@
 ## 1- Create a service principal
 We are going to use an identity from the managing tenant to register the resource provider in the managed tenants. To do so, you need to go into the parent tenant and create an app registration:
  <p align="left">
-  <img src="./media/AAD-appreg.png" >
+  <img src="./media/AAD-appreg.PNG" >
 </p>
 
 Give it a name and select the multitenant option:
  <p align="left">
-  <img src="./media/appreg-multitenant.png" >
+  <img src="./media/appreg-multitenant.PNG" >
 </p>
 
 Get the Application (client) ID, you will need it to deploy the template.
@@ -22,10 +22,10 @@ Get the Application (client) ID, you will need it to deploy the template.
 Create a secret for your app and save it in a safe place. After you create it, you won't be able to retrive it again. 
 
  <p align="left">
-  <img src="/media/app-secret.png" >
+  <img src="./media/app-secret.PNG" >
 </p>
 <p align="left">
-  <img src="./media/app-secret2.png" >
+  <img src="./media/app-secret2.PNG" >
 </p>
 
 ## 2- Grant your service principal access to the managed tenants
@@ -65,7 +65,7 @@ New-AzRoleDefinition -InputFile "C:\CustomRoles\managedServicesRPRegister-role.j
 
 After you create the role, you will be able to assign that role to the service principal:
 <p align="left">
-  <img src="./media/roleassignment.png" >
+  <img src="./media/roleassignment.PNG" >
 </p>
 
 ## 3- Deploy template
