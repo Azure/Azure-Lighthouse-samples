@@ -16,12 +16,14 @@ The logic app is configured to run every day, but you can change that trigger to
 ## 1- Create a service principal
 
 We are going to use an identity from the managing tenant to register the resource provider in the managed tenants. To do so, you need to go into the partner tenant and create an app registration:
- <p align="left">
+
+ <p align="center">
   <img src="./media/AAD-appreg.PNG" >
 </p>
 
 Give it a name and select the multitenant option:
- <p align="left">
+
+ <p align="center">
   <img src="./media/appreg-multitenant.PNG" >
 </p>
 
@@ -29,16 +31,18 @@ Get the Application (client) ID, you will need it to deploy the template.
 
 Create a secret for your app and save it in a safe place. After you create it, you won't be able to retrive it again. 
 
- <p align="left">
+ <p align="center">
   <img src="./media/app-secret.PNG" >
 </p>
-<p align="left">
+
+<p align="center">
   <img src="./media/app-secret2.PNG" >
 </p>
 
 ## 2- Grant your service principal access to the managed tenants
 
 The application that you just registered in the managing tenant doesn't exist in the managed tenants. You need to [grant tenant-wide admin consent](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent#construct-the-url-for-granting-tenant-wide-admin-consent) for that application in each customer AAD. You can do it by using an URL like this:
+
 ```http
 https://login.microsoftonline.com/{tenant-id}/adminconsent?client_id={client-id}
 ```
@@ -56,24 +60,29 @@ Now, that the app exists in each customer tenant, you need to give it permission
 You need to assign a role to the service principal at the root management group so that it can register the resource provider for each new subscription. The only built-in role that is able to do so is the owner or the contributor. Assigning those role, in this scenario, goes against the principle of least privilege. We advise you to create a more granular role (in each customer) that limits the actions that the service principal can do. That role should only be able to register the managed services resource provider. 
 
 ### 3.1 Create and assign a custom role to the service principal
+
 There are multiple ways to [create a custom role definition](https://docs.microsoft.com/en-us/azure/role-based-access-control/custom-roles). We created a template that you can use, it is in the file *managedServicesRPRegister-role.json*. 
 
 In that file, fill the *assignables scopes* field with the customer [Root Management Group ID](https://docs.microsoft.com/en-us/azure/governance/management-groups/overview#important-facts-about-the-root-management-group) (also known as the customer tenant ID):
+
 ```json
 "AssignableScopes": [
       "/providers/Microsoft.Management/managementGroups/{rootMGID}"
     ]
 ```     
 To deploy it, you can use Azure CLI or Powerhsell:
+
 ```azurecli
 az role definition create --role-definition "~roles/managedServicesRPRegister-role.json"
 ``` 
+
 ```azurepowershell
 New-AzRoleDefinition -InputFile "C:\CustomRoles\managedServicesRPRegister-role.json"
 ```
 
 After you create the role, you will be able to assign that role to the service principal:
-<p align="left">
+
+<p align="center">
   <img src="./media/roleassignment.PNG" >
 </p>
 
