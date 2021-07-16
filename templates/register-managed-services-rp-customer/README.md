@@ -23,21 +23,25 @@ You can give this identity the role of contributor at the root management group 
 There are multiple ways to [create a custom role definition](https://docs.microsoft.com/en-us/azure/role-based-access-control/custom-roles). We created a template that you can use, it is in the file *managedServicesRPRegister-role.json*.
 
 In that file, fill the *assignables scopes* field with the customer [Root Management Group ID](https://docs.microsoft.com/en-us/azure/governance/management-groups/overview#important-facts-about-the-root-management-group) (also known as the customer tenant ID):
+
 ```json
 "AssignableScopes": [
       "/providers/Microsoft.Management/managementGroups/{rootMGID}"
     ]
 ```     
 To deploy it, you can use Azure CLI or Powerhsell:
+
 ```azurecli
 az role definition create --role-definition "~roles/managedServicesRPRegister-role.json"
 ``` 
+
 ```azurepowershell
 New-AzRoleDefinition -InputFile "C:\CustomRoles\managedServicesRPRegister-role.json"
 ```
 
 After you create the role, you will be able to assign that role to the logic app system assigned identity. You should assign it at the *root management group level*, so that it will find each new subscription. To find the managed identity better, you can search for the name that you gave to your logic app:
-<p align="left">
+
+<p align="center">
   <img src="./media/roleassignment.PNG" >
 </p>
 
