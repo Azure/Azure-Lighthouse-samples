@@ -22,7 +22,7 @@ Get the Application (client) ID, you will need it to deploy the template.
 Create a secret for your app and save it in a safe place. After you create it, you won't be able to retrive it again. 
 
  <p align="left">
-  <img src="./media/app-secret.png" >
+  <img src="/media/app-secret.png" >
 </p>
 <p align="left">
   <img src="./media/app-secret2.png" >
