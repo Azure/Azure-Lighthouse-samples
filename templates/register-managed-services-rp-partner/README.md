@@ -18,7 +18,7 @@ The logic app is configured to run every day, but you can change that trigger to
 We are going to use an identity from the managing tenant to register the resource provider in the managed tenants. To do so, you need to go into the partner tenant and create an app registration:
 
  <p align="center">
-  <img src="./media/AAD-appreg.PNG" >
+  <img src="./media/aad-appreg.PNG" >
 </p>
 
 Give it a name and select the multitenant option:
