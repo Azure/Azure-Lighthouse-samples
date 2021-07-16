@@ -19,7 +19,7 @@ You can give this identity the role of contributor at the root management group 
 ### **1.1 Create and assign a custom role to the managed identity**
 There are multiple ways to [create a custom role definition](https://docs.microsoft.com/en-us/azure/role-based-access-control/custom-roles).
 
-You can find the definition of the custom role in the file *managedServicesRPRegister-role.json*. In that file, fill the *assignables scopes* field with the customer [Root Management Group ID](https://docs.microsoft.com/en-us/azure/governance/management-groups/overview#important-facts-about-the-root-management-group) (also known as the customer tenant ID:
+You can find the definition of the custom role in the file *managedServicesRPRegister-role.json*. In that file, fill the *assignables scopes* field with the customer [Root Management Group ID](https://docs.microsoft.com/en-us/azure/governance/management-groups/overview#important-facts-about-the-root-management-group) (also known as the customer tenant ID):
 ```json
 "AssignableScopes": [
       "/providers/Microsoft.Management/managementGroups/{rootMGID}"
