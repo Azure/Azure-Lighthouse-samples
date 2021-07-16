@@ -1,0 +1,240 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicappName": {
+            "defaultValue": "resourceProvider-logicapp",
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+              "description": "Location for the logic app and its connectors"
+            }
+        },
+        "clientID": {
+            "type": "string",
+            "defaultValue": "<application ID>",
+            "metadata": {
+              "description": "Application ID of the app that has permissions to register the resource provider"
+            }
+        },
+        "clientSecret": {
+            "type": "string",
+            "defaultValue": "<application secret>",
+            "metadata": {
+              "description": "Application secret of the app that has permissions to register the resource provider"
+            }
+        },
+        "tenantsList": {
+            "type": "array",
+            "defaultValue": ["tenantID1","tenantID2"],
+            "metadata": {
+              "description": "List of managed tenants IDs"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('logicappName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "triggers": {
+                        "Recurrence": {
+                            "recurrence": {
+                                "frequency": "Day",
+                                "interval": 1
+                            },
+                            "type": "Recurrence"
+                        }
+                    },
+                    "actions": {
+                        "TenantLoop": {
+                            "foreach": "@variables('tenantsList')",
+                            "actions": {
+                                "Get_all_subscriptions_per_tenant_-_HTTP_request": {
+                                    "runAfter": {},
+                                    "type": "Http",
+                                    "inputs": {
+                                        "authentication": {
+                                            "audience": "https://management.azure.com/",
+                                            "clientId": "[parameters('clientID')]",
+                                            "secret": "[parameters('clientSecret')]",
+                                            "tenant": "@items('TenantLoop')",
+                                            "type": "ActiveDirectoryOAuth"
+                                        },
+                                        "method": "GET",
+                                        "uri": "https://management.azure.com/subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                "SubscriptionLoop": {
+                                    "foreach": "@body('Subscriptions_info_-_parse_json')?['value']",
+                                    "actions": {
+                                        "Filter_out_disabled_subscriptions_-_condition": {
+                                            "actions": {
+                                                "Register_resource_provider_-_HTTP_request": {
+                                                    "runAfter": {},
+                                                    "type": "Http",
+                                                    "inputs": {
+                                                        "authentication": {
+                                                            "audience": "https://management.azure.com/",
+                                                            "clientId": "[parameters('clientID')]",
+                                                            "secret": "[parameters('clientSecret')]",
+                                                            "tenant": "@items('TenantLoop')",
+                                                            "type": "ActiveDirectoryOAuth"
+                                                        },
+                                                        "method": "POST",
+                                                        "uri": "https://management.azure.com/subscriptions/@{items('SubscriptionLoop')?['subscriptionId']}/providers/Microsoft.ManagedServices/register?api-version=2021-04-01"
+                                                    }
+                                                }
+                                            },
+                                            "runAfter": {},
+                                            "expression": {
+                                                "and": [
+                                                    {
+                                                        "equals": [
+                                                            "@items('SubscriptionLoop')?['state']",
+                                                            "Enabled"
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            "type": "If"
+                                        }
+                                    },
+                                    "runAfter": {
+                                        "Subscriptions_info_-_parse_json": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Foreach"
+                                },
+                                "Subscriptions_info_-_parse_json": {
+                                    "runAfter": {
+                                        "Get_all_subscriptions_per_tenant_-_HTTP_request": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ParseJson",
+                                    "inputs": {
+                                        "content": "@body('Get_all_subscriptions_per_tenant_-_HTTP_request')",
+                                        "schema": {
+                                            "properties": {
+                                                "count": {
+                                                    "properties": {
+                                                        "type": {
+                                                            "type": "string"
+                                                        },
+                                                        "value": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "value": {
+                                                    "items": {
+                                                        "properties": {
+                                                            "authorizationSource": {
+                                                                "type": "string"
+                                                            },
+                                                            "displayName": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "managedByTenants": {
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "tenantId": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "tenantId"
+                                                                    ],
+                                                                    "type": "object"
+                                                                },
+                                                                "type": "array"
+                                                            },
+                                                            "state": {
+                                                                "type": "string"
+                                                            },
+                                                            "subscriptionId": {
+                                                                "type": "string"
+                                                            },
+                                                            "subscriptionPolicies": {
+                                                                "properties": {
+                                                                    "locationPlacementId": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "quotaId": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "spendingLimit": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "tenantId": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "authorizationSource",
+                                                            "managedByTenants",
+                                                            "subscriptionId",
+                                                            "tenantId",
+                                                            "displayName",
+                                                            "state",
+                                                            "subscriptionPolicies"
+                                                        ],
+                                                        "type": "object"
+                                                    },
+                                                    "type": "array"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Tenants_list_-_variable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "Tenants_list_-_variable": {
+                            "runAfter": {},
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "tenantsList",
+                                        "type": "array",
+                                        "value": "[parameters('tenantsList')]"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {}
+            }
+        }
+    ]
+}
