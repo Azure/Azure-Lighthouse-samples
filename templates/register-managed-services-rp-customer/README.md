@@ -10,6 +10,8 @@ This template will deploy a logic app that will use its identity to register the
 
 The logic app that you find here is intended to be **deployed for each customer**. There is a similar example in this repository, where you can find a logic app that will do the same thing, but you can deploy that in the partner environment.
 
+The logic app is configured to run every day, but you can change that trigger to better suit your needs.
+
 ## **Post-Deployment configurations**
 ## 1- Assign permissions to the logic app system identity to be able to register the resource provider in each subscription
 You need to manually give permissions to the logic app system assigned identity to be able to get all subscriptions and register the managed services resource provider in each subscrption.
@@ -17,9 +19,10 @@ You need to manually give permissions to the logic app system assigned identity 
 You can give this identity the role of contributor at the root management group level, but that goes against the principle of least privilege. We advise you to create a more granular role (in each customer). This role will only give permission to register the managed services provider. 
 
 ### **1.1 Create and assign a custom role to the managed identity**
-There are multiple ways to [create a custom role definition](https://docs.microsoft.com/en-us/azure/role-based-access-control/custom-roles).
 
-You can find the definition of the custom role in the file *managedServicesRPRegister-role.json*. In that file, fill the *assignables scopes* field with the customer [Root Management Group ID](https://docs.microsoft.com/en-us/azure/governance/management-groups/overview#important-facts-about-the-root-management-group) (also known as the customer tenant ID):
+There are multiple ways to [create a custom role definition](https://docs.microsoft.com/en-us/azure/role-based-access-control/custom-roles). We created a template that you can use, it is in the file *managedServicesRPRegister-role.json*.
+
+In that file, fill the *assignables scopes* field with the customer [Root Management Group ID](https://docs.microsoft.com/en-us/azure/governance/management-groups/overview#important-facts-about-the-root-management-group) (also known as the customer tenant ID):
 ```json
 "AssignableScopes": [
       "/providers/Microsoft.Management/managementGroups/{rootMGID}"
