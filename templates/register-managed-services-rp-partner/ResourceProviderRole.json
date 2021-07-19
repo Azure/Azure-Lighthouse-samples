@@ -1,0 +1,15 @@
+{
+    "Name": "Managed Services RP Register",
+    "Id": null,
+    "IsCustom": true,
+    "Description": "Can register managed services resource providers.",
+    "Actions": [
+      "Microsoft.ManagedServices/register/action"
+    ],
+    "NotActions": [],
+    "DataActions": [],
+    "NotDataActions": [],
+    "AssignableScopes": [
+      "/providers/Microsoft.Management/managementGroups/735a94ff-1678-4d98-a63e-17a07762d19e"
+    ]
+  }
