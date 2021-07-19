@@ -1,6 +1,8 @@
 # Azure Policy to deploy Azure Lighthouse at Management Group-level
 
-Pre-requisite: Register subscriptions for the RP ManagedServices. Otherwise, the policy will not run.
+Pre-requisite: Register subscriptions for the Managed Services RP. Otherwise, the policy will not run. You can take a look at the following Logic Apps that automatically register the Managed Services RP:
+- https://github.com/Azure/Azure-Lighthouse-samples/tree/master/templates/register-managed-services-rp-partner
+- https://github.com/Azure/Azure-Lighthouse-samples/tree/master/templates/register-managed-services-rp-customer
 
 Deploy this Policy at the management group level to delegate subscriptions within the management group to a managing tenant via Azure Lighthouse. 
 
