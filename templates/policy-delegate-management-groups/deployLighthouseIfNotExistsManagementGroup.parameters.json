@@ -9,17 +9,17 @@
             "value": "This is the ultimate MSP"
         },
         "managedByTenantId": {
-            "value": "20292530-b1ac-401d-be5c-24bc04a19791"
+            "value": "00000000-0000-0000-0000-000000000000"
         },
         "managedByAuthorizations": {
             "value": [
                 {
-                    "principalId": "b641010a-c528-49dc-abbc-beeb9f05c808",
+                    "principalId": "00000000-0000-0000-0000-000000000000",
                     "principalIdDisplayName": "Tier 1 Support",
-                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7"
                 },
                 {
-                    "principalId": "460a7196-b774-4f2e-bc01-f4df128f2e44",
+                    "principalId": "00000000-0000-0000-0000-000000000000",
                     "principalIdDisplayName": "Automation Account - Full access",
                     "roleDefinitionId": "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
                     "delegatedRoleDefinitionIds": [
