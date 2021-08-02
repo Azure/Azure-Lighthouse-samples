@@ -6,48 +6,73 @@
             "type": "string",
             "metadata": {
                 "description": "Specify a unique name for your offer"
-            }
+            },
+            "defaultValue": "<to be filled out by MSP> Specify a title for your offer"
         },
         "mspOfferDescription": {
             "type": "string",
             "metadata": {
                 "description": "Name of the Managed Service Provider offering"
-            }
+            },
+            "defaultValue": "<to be filled out by MSP> Provide a brief description of your offer"
         },
         "managedByTenantId": {
             "type": "string",
             "metadata": {
                 "description": "Specify the tenant id of the Managed Service Provider"
-            }
+            },
+            "defaultValue": "<to be filled out by MSP> Provide your tenant id"
         },
         "authorizations": {
             "type": "array",
             "metadata": {
                 "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
-            }
+            },
+                "defaultValue": [
+                { 
+                    "principalId": "00000000-0000-0000-0000-000000000000", 
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+                    "principalIdDisplayName": "PIM_Group" 
+                }, 
+                { 
+                    "principalId": "00000000-0000-0000-0000-000000000000", 
+                    "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
+                    "principalIdDisplayName": "PIM_Group" 
+                }   
+            ]
         
         },
         "resourceGroups": {
             "type": "array",
               "metadata": { 
-                "description": "The list of resource groups to delegate. Note: resource groups must already exist in tenant" 
-            } 
+                "description": "Note: resource groups must already exist in tenant" 
+            },
+             "defaultValue": [
+                {
+                    "rgName": "test"
+                },
+                {
+                    "rgName": "test2"
+                },
+                {
+                    "rgName": "test3"
+                }
+            ] 
         }              
+    },
+    "variables": {
+        "mspRegistrationName": "[guid(parameters('mspOfferName'))]"
     },
     "resources": [
         {
             "type": "Microsoft.ManagedServices/registrationDefinitions",
             "apiVersion": "2019-06-01",
-            "name": "[guid(parameters('resourceGroups')[copyIndex()].rgName)]",
+            "name": "[variables('mspRegistrationName')]",
             "properties": {
                 "registrationDefinitionName": "[parameters('mspOfferName')]",
                 "description": "[parameters('mspOfferDescription')]",
                 "managedByTenantId": "[parameters('managedByTenantId')]",
                 "authorizations": "[parameters('authorizations')]"
-            },
-            "copy": {
-                "name": "deploymentCopy",
-                "count": "[length(parameters('resourceGroups'))]"
             }
         },
         {
@@ -60,7 +85,7 @@
                 "count": "[length(parameters('resourceGroups'))]"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', guid(parameters('resourceGroups')[copyIndex()].rgName))]"
+                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
             ],
             "properties":{
                 "mode":"Incremental",
@@ -74,7 +99,7 @@
                             "apiVersion": "2019-06-01",
                             "name": "[guid(parameters('resourceGroups')[copyIndex()].rgName)]",
                             "properties": {
-                                "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', guid(parameters('resourceGroups')[copyIndex()].rgName))]"
+                                "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
                             }
                         }
                     ]
