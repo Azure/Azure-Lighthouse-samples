@@ -7,21 +7,21 @@
             "metadata": {
                 "description": "Specify a unique name for your offer"
             },
-            "defaultValue": "<to be filled out by MSP> Specify a title for your offer"
+            "defaultValue": "Relecloud Premium Managed Services"
         },
         "mspOfferDescription": {
             "type": "string",
             "metadata": {
                 "description": "Name of the Managed Service Provider offering"
             },
-            "defaultValue": "<to be filled out by MSP> Provide a brief description of your offer"
+            "defaultValue": "We offer a wide variety of managed services from system backup to vm monitoring to security and more."
         },
         "managedByTenantId": {
             "type": "string",
             "metadata": {
                 "description": "Specify the tenant id of the Managed Service Provider"
             },
-            "defaultValue": "<to be filled out by MSP> Provide your tenant id"
+            "defaultValue": "fbcdd0f3-dc82-4cee-bcde-7301d24e9bf6"
         },
         "authorizations": {
             "type": "array",
@@ -30,14 +30,14 @@
             },
             "defaultValue": [
                 { 
-                    "principalId": "00000000-0000-0000-0000-000000000000", 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
                     "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
-                    "principalIdDisplayName": "PIM_Group" 
+                    "principalIdDisplayName": "Tier 1 Support" 
                 }, 
                 { 
-                    "principalId": "00000000-0000-0000-0000-000000000000", 
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
                     "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
-                    "principalIdDisplayName": "PIM_Group" 
+                    "principalIdDisplayName": "Tier 1 Support" 
                 }   
             ]
         }, 
@@ -54,17 +54,25 @@
                             "managedByTenantApprovers": [ 
                                 { 
                                     "principalId": "ae3a5392-a2ec-4cc7-89cd-db23ac756900", 
-                                    "principalIdDisplayName": "PIM-Approvers" 
+                                    "principalIdDisplayName": "IT admin approvers" 
                                 } 
                             ]  
                         },
-                        "principalId": "00000000-0000-0000-0000-000000000000", 
-                        "principalIdDisplayName": "PIM_Group",
+                        "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                        "principalIdDisplayName": "Tier 1 Support",
                         "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c" 
-                }                    
-            ]    
+                },
+                { 
+                    "justInTimeAccessPolicy": { 
+                        "multiFactorAuthProvider": "None", 
+                        "maximumActivationDuration": "PT3H"
+                    },
+                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
+                    "principalIdDisplayName": "VM Monitor Group",
+                    "roleDefinitionId": "9980e02c-c2be-4d73-94e8-173b1dc7cf3c" 
+            }                    
+        ]    
 
-        }                 
     },
     "variables": {
         "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
@@ -111,4 +119,5 @@
 
         } 
     }
+}
 }

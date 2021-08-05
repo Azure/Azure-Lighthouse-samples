@@ -90,13 +90,17 @@
         {
             "type": "Microsoft.ManagedServices/registrationDefinitions",
             "apiVersion": "2020-02-01-preview",
-            "name": "[variables('mspRegistrationName')]",
+            "name": "[guid(parameters('resourceGroups')[copyIndex()].rgName)]",
             "properties": {
                 "registrationDefinitionName": "[parameters('mspOfferName')]",
                 "description": "[parameters('mspOfferDescription')]",
                 "managedByTenantId": "[parameters('managedByTenantId')]",
                 "authorizations": "[parameters('authorizations')]",
                 "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]" 
+            },
+            "copy": {
+                "name": "deploymentCopy",
+                "count": "[length(parameters('resourceGroups'))]"
             }
         },
         {

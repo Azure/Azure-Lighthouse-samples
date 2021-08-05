@@ -84,13 +84,17 @@
         {
             "type": "Microsoft.ManagedServices/registrationDefinitions",
             "apiVersion": "2020-02-01-preview",
-            "name": "[variables('mspRegistrationName')]",
+            "name": "[guid(parameters('resourceGroups')[copyIndex()].rgName)]",
             "properties": {
                 "registrationDefinitionName": "[parameters('mspOfferName')]",
                 "description": "[parameters('mspOfferDescription')]",
                 "managedByTenantId": "[parameters('managedByTenantId')]",
                 "authorizations": "[parameters('authorizations')]",
                 "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]" 
+            },
+            "copy": {
+                "name": "deploymentCopy",
+                "count": "[length(parameters('resourceGroups'))]"
             }
         },
         {
@@ -103,7 +107,7 @@
                 "count": "[length(parameters('resourceGroups'))]"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', guid(parameters('resourceGroups')[copyIndex()].rgName))]"
             ],
             "properties":{
                 "mode":"Incremental",
@@ -112,12 +116,31 @@
                     "contentVersion": "1.0.0.0",
                     "parameters": {},
                     "resources": [
+            {
+                "type": "Microsoft.Resources/deployments",
+                "apiVersion": "2018-05-01",
+                "name": "[concat('rgAssignment', copyIndex())]",
+                "resourceGroup": "[parameters('resourceGroups')[copyIndex()].rgName]",
+                "copy": {
+                    "name": "deploymentCopy",
+                    "count": "[length(parameters('resourceGroups'))]"
+                },
+                "dependsOn": [
+                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+                ],
+                "properties":{
+                    "mode":"Incremental",
+                    "template":{
+                        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                        "contentVersion": "1.0.0.0",
+                        "parameters": {},
+                        "resources": [
                         {
                             "type": "Microsoft.ManagedServices/registrationAssignments",
                             "apiVersion": "2020-02-01-preview",
                             "name": "[guid(parameters('resourceGroups')[copyIndex()].rgName)]",
                             "properties": {
-                                "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+                                "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', guid(parameters('resourceGroups')[copyIndex()].rgName))]"
                             }
                         }
                     ]
