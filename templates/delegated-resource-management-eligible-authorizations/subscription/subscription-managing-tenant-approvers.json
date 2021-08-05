@@ -6,73 +6,31 @@
             "type": "string",
             "metadata": {
                 "description": "Specify a unique name for your offer"
-            },
-            "defaultValue": "Relecloud Premium Managed Services"
+            }
         },
         "mspOfferDescription": {
             "type": "string",
             "metadata": {
                 "description": "Name of the Managed Service Provider offering"
-            },
-            "defaultValue": "We offer a wide variety of managed services from system backup to vm monitoring to security and more."
+            }
         },
         "managedByTenantId": {
             "type": "string",
             "metadata": {
                 "description": "Specify the tenant id of the Managed Service Provider"
-            },
-            "defaultValue": "fbcdd0f3-dc82-4cee-bcde-7301d24e9bf6"
+            }
         },
         "authorizations": {
             "type": "array",
             "metadata": {
                 "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
-            },
-            "defaultValue": [
-                { 
-                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
-                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
-                    "principalIdDisplayName": "Tier 1 Support" 
-                }, 
-                { 
-                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
-                    "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
-                    "principalIdDisplayName": "Tier 1 Support" 
-                }   
-            ]
+            }
         }, 
         "eligibleAuthorizations": { 
             "type": "array", 
             "metadata": { 
                 "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments with support for approvals from the managing tenant" 
-            },
-           "defaultValue": [ 
-                { 
-                        "justInTimeAccessPolicy": { 
-                            "multiFactorAuthProvider": "Azure", 
-                            "maximumActivationDuration": "PT8H",
-                            "managedByTenantApprovers": [ 
-                                { 
-                                    "principalId": "ae3a5392-a2ec-4cc7-89cd-db23ac756900", 
-                                    "principalIdDisplayName": "IT admin approvers" 
-                                } 
-                            ]  
-                        },
-                        "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
-                        "principalIdDisplayName": "Tier 1 Support",
-                        "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c" 
-                },
-                { 
-                    "justInTimeAccessPolicy": { 
-                        "multiFactorAuthProvider": "None", 
-                        "maximumActivationDuration": "PT3H"
-                    },
-                    "principalId": "ee8f6d35-15f2-4252-b1b8-591358e8a244", 
-                    "principalIdDisplayName": "VM Monitor Group",
-                    "roleDefinitionId": "9980e02c-c2be-4d73-94e8-173b1dc7cf3c" 
-            }                    
-        ]    
-
+            }
     },
     "variables": {
         "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
