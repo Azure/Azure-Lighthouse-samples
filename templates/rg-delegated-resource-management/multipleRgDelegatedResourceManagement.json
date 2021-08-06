@@ -48,7 +48,7 @@
             "copy": {
                 "name": "deploymentCopy",
                 "count": "[length(parameters('resourceGroups'))]"
-            },
+            }
         },
         {
             "type": "Microsoft.Resources/deployments",
