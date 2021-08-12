@@ -31,16 +31,17 @@
             "metadata": { 
                 "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments" 
             }              
-    },
-    "variables": {
-        "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
-        "mspAssignmentName": "[guid(parameters('mspOfferName'))]"
-    },
-    "resources": [
+    }
+},
+"variables": {
+    "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
+    "mspAssignmentName": "[guid(parameters('mspOfferName'))]"
+},
+"resources": [
         {
             "type": "Microsoft.ManagedServices/registrationDefinitions",
             "apiVersion": "2020-02-01-preview",
-            "name": "[variables('mspRegistrationName')]",
+            "name": "[guid(parameters('mspOfferName'))]",
             "properties": {
                 "registrationDefinitionName": "[parameters('mspOfferName')]",
                 "description": "[parameters('mspOfferDescription')]",
@@ -52,7 +53,7 @@
         {
             "type": "Microsoft.ManagedServices/registrationAssignments",
             "apiVersion": "2020-02-01-preview",
-            "name": "[variables('mspAssignmentName')]",
+            "name": "[guid(parameters('mspOfferName'))]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
             ],
@@ -77,4 +78,5 @@
 
         } 
     }
-}
+  }
+
