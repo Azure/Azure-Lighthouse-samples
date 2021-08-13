@@ -25,57 +25,55 @@
             "metadata": {
                 "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
             }
-        }, 
-        "eligibleAuthorizations": { 
-            "type": "array", 
-            "metadata": { 
-                "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments with support for approvals from the managing tenant" 
-            }
-    },
-    "variables": {
-        "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
-        "mspAssignmentName": "[guid(parameters('mspOfferName'))]"
-    },
-    "resources": [
-        {
-            "type": "Microsoft.ManagedServices/registrationDefinitions",
-            "apiVersion": "2020-02-01-preview",
-            "name": "[variables('mspRegistrationName')]",
-            "properties": {
-                "registrationDefinitionName": "[parameters('mspOfferName')]",
-                "description": "[parameters('mspOfferDescription')]",
-                "managedByTenantId": "[parameters('managedByTenantId')]",
-                "authorizations": "[parameters('authorizations')]", 
-                "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]" 
-            }
         },
-        {
-            "type": "Microsoft.ManagedServices/registrationAssignments",
-            "apiVersion": "2020-02-01-preview",
-            "name": "[variables('mspAssignmentName')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
-            ],
-            "properties": {
-                "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+        "eligibleAuthorizations": {
+            "type": "array",
+            "metadata": {
+                "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments with support for approvals from the managing tenant"
             }
         }
-    ],
-    
-    "outputs": {
-        "mspOfferName": {
-            "type": "string",
-            "value": "[concat('Managed by', ' ', parameters('mspOfferName'))]"
+    },
+        "variables": {
+            "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
+            "mspAssignmentName": "[guid(parameters('mspOfferName'))]"
         },
-        "authorizations": {
-            "type": "array",
-            "value": "[parameters('authorizations')]"
-        }, 
-        "eligibleAuthorizations": { 
-            "type": "array", 
-            "value": "[parameters('eligibleAuthorizations')]" 
-
-        } 
+        "resources": [
+            {
+                "type": "Microsoft.ManagedServices/registrationDefinitions",
+                "apiVersion": "2020-02-01-preview",
+                "name": "[variables('mspRegistrationName')]",
+                "properties": {
+                    "registrationDefinitionName": "[parameters('mspOfferName')]",
+                    "description": "[parameters('mspOfferDescription')]",
+                    "managedByTenantId": "[parameters('managedByTenantId')]",
+                    "authorizations": "[parameters('authorizations')]",
+                    "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]"
+                }
+            },
+            {
+                "type": "Microsoft.ManagedServices/registrationAssignments",
+                "apiVersion": "2020-02-01-preview",
+                "name": "[variables('mspAssignmentName')]",
+                "dependsOn": [
+                    "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+                ],
+                "properties": {
+                    "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+                }
+            }
+        ],
+        "outputs": {
+            "mspOfferName": {
+                "type": "string",
+                "value": "[concat('Managed by', ' ', parameters('mspOfferName'))]"
+            },
+            "authorizations": {
+                "type": "array",
+                "value": "[parameters('authorizations')]"
+            },
+            "eligibleAuthorizations": {
+                "type": "array",
+                "value": "[parameters('eligibleAuthorizations')]"
+            }
+        }
     }
-}
-}
