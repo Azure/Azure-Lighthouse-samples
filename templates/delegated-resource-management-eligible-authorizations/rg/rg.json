@@ -12,7 +12,7 @@
             "type": "string",
             "metadata": {
                 "description": "Name of the Managed Service Provider offering"
-            },
+            }
         },
         "managedByTenantId": {
             "type": "string",
