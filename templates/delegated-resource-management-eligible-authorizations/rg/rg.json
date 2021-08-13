@@ -25,16 +25,16 @@
             "metadata": {
                 "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
             }
-        }, 
-        "eligibleAuthorizations": { 
-            "type": "array", 
-            "metadata": { 
-                "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments" 
-            }  
         },
-          "rgName": {
+        "eligibleAuthorizations": {
+            "type": "array",
+            "metadata": {
+                "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments"
+            }
+        },
+        "rgName": {
             "type": "string"
-        }                  
+        }
     },
     "variables": {
         "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
@@ -49,36 +49,36 @@
                 "registrationDefinitionName": "[parameters('mspOfferName')]",
                 "description": "[parameters('mspOfferDescription')]",
                 "managedByTenantId": "[parameters('managedByTenantId')]",
-                "authorizations": "[parameters('authorizations')]", 
-                "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]" 
+                "authorizations": "[parameters('authorizations')]",
+                "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]"
             }
         },
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2018-05-01",
             "name": "rgAssignment",
-             "resourceGroup": "[parameters('rgName')]",
-              "dependsOn": [
+            "resourceGroup": "[parameters('rgName')]",
+            "dependsOn": [
                 "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
             ],
-              "properties":{
-                "mode":"Incremental",
-                "template":{
+            "properties": {
+                "mode": "Incremental",
+                "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
                     "parameters": {},
-                     "resources": [
-                         {
+                    "resources": [
+                        {
                             "type": "Microsoft.ManagedServices/registrationAssignments",
                             "apiVersion": "2020-02-01-preview",
                             "name": "[variables('mspAssignmentName')]",
                             "properties": {
-                                            "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
-                                          }
-                         }
+                                "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
+                            }
+                        }
                     ]
                 }
-              }
+            }
         }
     ],
     "outputs": {
@@ -89,11 +89,10 @@
         "authorizations": {
             "type": "array",
             "value": "[parameters('authorizations')]"
-        }, 
-        "eligibleAuthorizations": { 
-            "type": "array", 
-            "value": "[parameters('eligibleAuthorizations')]" 
-
-        } 
+        },
+        "eligibleAuthorizations": {
+            "type": "array",
+            "value": "[parameters('eligibleAuthorizations')]"
+        }
     }
 }
