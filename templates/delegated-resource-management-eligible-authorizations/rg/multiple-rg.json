@@ -6,8 +6,7 @@
             "type": "string",
             "metadata": {
                 "description": "Specify a unique name for your offer"
-            },
-            "defaultValue": "<to be filled out by MSP> Specify a title for your offer"
+            }
         },
         "mspOfferDescription": {
             "type": "string",
@@ -27,19 +26,18 @@
                 "description": "Specify an array of objects, containing tuples of Azure Active Directory principalId, a Azure roleDefinitionId, and an optional principalIdDisplayName. The roleDefinition specified is granted to the principalId in the provider's Active Directory and the principalIdDisplayName is visible to customers."
             }
         },
-        "eligibleAuthorizations": { 
-            "type": "array", 
-            "metadata": { 
-                "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments" 
-            }, 
+        "eligibleAuthorizations": {
+            "type": "array",
+            "metadata": {
+                "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments"
+            }
+        },
         "resourceGroups": {
             "type": "array",
-            "metadata": { 
-                "description": "Note: resource groups must already exist in tenant" 
-            }         
-    },
-    "variables": {
-        "mspRegistrationName": "[guid(parameters('mspOfferName'))]"
+            "metadata": {
+                "description": "Note: resource groups must already exist in tenant"
+            }
+        }
     },
     "resources": [
         {
@@ -51,7 +49,7 @@
                 "description": "[parameters('mspOfferDescription')]",
                 "managedByTenantId": "[parameters('managedByTenantId')]",
                 "authorizations": "[parameters('authorizations')]",
-                "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]" 
+                "eligibleAuthorizations": "[parameters('eligibleAuthorizations')]"
             },
             "copy": {
                 "name": "deploymentCopy",
@@ -70,32 +68,13 @@
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', guid(parameters('resourceGroups')[copyIndex()].rgName))]"
             ],
-            "properties":{
-                "mode":"Incremental",
-                "template":{
+            "properties": {
+                "mode": "Incremental",
+                "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
                     "parameters": {},
                     "resources": [
-            {
-                "type": "Microsoft.Resources/deployments",
-                "apiVersion": "2018-05-01",
-                "name": "[concat('rgAssignment', copyIndex())]",
-                "resourceGroup": "[parameters('resourceGroups')[copyIndex()].rgName]",
-                "copy": {
-                    "name": "deploymentCopy",
-                    "count": "[length(parameters('resourceGroups'))]"
-                },
-                "dependsOn": [
-                "[resourceId('Microsoft.ManagedServices/registrationDefinitions/', variables('mspRegistrationName'))]"
-                ],
-                "properties":{
-                    "mode":"Incremental",
-                    "template":{
-                        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-                        "contentVersion": "1.0.0.0",
-                        "parameters": {},
-                        "resources": [
                         {
                             "type": "Microsoft.ManagedServices/registrationAssignments",
                             "apiVersion": "2020-02-01-preview",
