@@ -9,9 +9,25 @@ This documentation is meant to provide a guide to the use of the scripts sourced
 - [Overview of Trigger-PolicyEvaluation.PS1](./README.md#overview-of-trigger-policyEvaluationps1) 
 - [Overview of Trigger-PolicyInitiativeRemediation.PS1](./README.md#overview-of-trigger-policyinitiativeremediationps1)
 
-**UPDATES!**</span> - November 11, 2020
+**UPDATES!**</span> - September 07, 2021
 
-- **Fixed more issues with REST API logic due to updates to Az cmdlets**: Due to some changes introduced with newer Az cmdlets, REST auth logic had to be reworked.  ADO switch is also no longer necessary for ADO.  This has been fixed in all scripts in this repo.
+**Create-AzDiagPolicy.PS1**
+
+*Minor update*
+
+September 07, 2021 2.9
+    
+  * Updated the API version for both below types.  This was recently caught with the help of ARM TTK: https://github.com/Azure/arm-ttk indicating an old version of an API for Azure Policy within the ARM template that is generated as part of this script. 
+
+    `"type": "Microsoft.Authorization/policyDefinitions",
+     "apiVersion": "2020-09-01"`
+    
+     **and**
+    
+    `"type": "Microsoft.Authorization/policySetDefinitions",
+    "apiVersion": "2020-09-01"`
+
+    > **NOTE**: Previous API version leveraged was 2019-09-01
 
 ## Flow Diagram
 
