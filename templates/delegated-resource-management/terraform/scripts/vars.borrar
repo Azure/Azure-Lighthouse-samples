@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Provide the following environment variables according to your Azure environment 
+export TF_VAR_mspoffername="Lighthouse Terraform"
+export TF_VAR_mspofferdescription="Lighthouse Terraform MSP offer"
+export TF_VAR_managedbytenantid="72f988bf-86f1-41af-91ab-2d7cd011db47"
+export TF_VAR_principal_display_name="Terraform users"
+export TF_VAR_principal_id="4db8cc67-ca6e-4a2c-ab0f-7948490bd78b"
+export TF_VAR_scope="/subscriptions/a15befbb-3730-4abf-a213-2150b9b088e7"

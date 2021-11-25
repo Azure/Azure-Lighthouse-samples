@@ -14,11 +14,8 @@ variable "managedbytenantid" {
 variable "scope" {
 }
 
-variable "role_definition_id{
+variable "principal_id" {
 }
 
-variable "principal_display_name{
-}
-
-variable "principal_id{
+variable "principal_display_name" {
 }

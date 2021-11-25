@@ -12,27 +12,37 @@ To run the terraform template the customer can use their own pipelines or Azure 
 
 To run the automation from the customer tenant follow the next steps:
 
-- Provide the environment variables in the [vars.sh](./scripts/vars.sh). To obtain the values for the environment variables, review [this document](https://docs.microsoft.com/en-us/azure/lighthouse/how-to/onboard-customer). For the scope, it can be either a subscription or a resource group, make sure it matches the format:
+- Provide the environment variables in the [vars.sh](./scripts/vars.sh). To obtain the values for the environment variables, review [this document](https://docs.microsoft.com/en-us/azure/lighthouse/how-to/onboard-customer). Use this as an example:
 
-  - Subscription: "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  - Resource Group: "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/myResourceGroup"
+    ```bash
+    #!/bin/sh
 
-- Run the [vars.sh](./scripts/vars.sh) script by executing this command:
+    # Provide the following environment variables according to your Azure environment 
+    export TF_VAR_mspoffername="Contoso Managed Services"
+    export TF_VAR_mspofferdescription="Contoso Managed Services"
+    export TF_VAR_managedbytenantid="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    export TF_VAR_principal_display_name="Admin users"
+    export TF_VAR_principal_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    export TF_VAR_scope="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    ```
+
+- From the scripts folder, run the [vars.sh](./scripts/vars.sh) script by executing this command:
 
     ```bash
     . ./vars.sh
     ```
 
-- Run the terraform init command which will initialize Terraform, creating the state file to track our work:
+- From the Terraform folder, run the terraform init command which will initialize Terraform, creating the state file to track our work:
 
     ```bash
     terraform init
     ```
 
-- Onboard Azure Lighthouse by running the command below. Wait for the plan to finish:
+- Onboard Azure Lighthouse by running the commands below. Wait for the plan to finish:
 
     ```bash
-    terraform apply --auto-approve
+    terraform plan
+    terraform apply
     ```
 
 - Once Terraform has completed its run crosstenant visibility should be enabled.
