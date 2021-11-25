@@ -1,6 +1,3 @@
-data "azurerm_role_definition" "contributor" {
-  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
-}
 
 resource "azurerm_lighthouse_definition" "definition" {
   name               = var.mspoffername
@@ -10,7 +7,7 @@ resource "azurerm_lighthouse_definition" "definition" {
 
   authorization {
     principal_id           = var.principal_id
-    role_definition_id     = data.azurerm_role_definition.contributor.role_definition_id
+    role_definition_id     = var.role_definition_id
     principal_display_name = var.principal_display_name
   }
 }

@@ -1,11 +1,11 @@
 # Declare TF variables
 
 variable "mspoffername" {
-  default = "Relecloud Managed Services"
+  default = "Contoso Managed Services"
 }
 
 variable "mspofferdescription" {
-  default = "Relecloud Managed Services"
+  default = "Contoso Managed Services"
 }
 
 variable "managedbytenantid" {
@@ -18,4 +18,8 @@ variable "principal_id" {
 }
 
 variable "principal_display_name" {
+}
+
+variable "role_definition_id" {
+  
 }
