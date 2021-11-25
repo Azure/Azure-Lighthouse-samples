@@ -24,6 +24,7 @@ To run the automation from the customer tenant follow the next steps:
     export TF_VAR_principal_display_name="Admin users"
     export TF_VAR_principal_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
     export TF_VAR_scope="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    export TF_VAR_role_definition_id="b24988ac-6180-42a0-ab88-20f7382dd24c"
     ```
 
 - From the scripts folder, run the [vars.sh](./scripts/vars.sh) script by executing this command:
