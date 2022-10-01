@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 2.9
+.VERSION 2.6
 
 .GUID e0962947-bf3c-4ed4-be3b-39cb7f6348c6
 
@@ -26,21 +26,8 @@ https://github.com/JimGBritt/AzurePolicy/tree/master/AzureMonitor/Scripts
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-September 07, 2021 2.9
-    Update
-    * Updated the API version for both below types.  This was recently caught with the help
-    of ARM TTK: https://github.com/Azure/arm-ttk indicating an old version of an API for Azure Policy
-    within the ARM template that is generated as part of this script. 
-
-    "type": "Microsoft.Authorization/policyDefinitions",
-    "apiVersion": "2020-09-01"
-
-    and 
-
-    "type": "Microsoft.Authorization/policySetDefinitions",
-    "apiVersion": "2020-09-01"
-
-    **NOTE**: Previous API version leveraged was 2019-09-01
+November 11, 2020 2.6
+    Fixed more issues with REST API logic due to updates to Az cmdlets
 #>
 
 <#  
@@ -130,20 +117,10 @@ September 07, 2021 2.9
     This parameter allows you to run this script in Azure DevOps pipeline utilizing an SPN
     (no op - deprecated)
 
-.PARAMETER Dedicated
-    This parameter allows you to specify a dedicated table for Azure Diagnostics for those ResourceTypes that support it
-    
-
 .EXAMPLE
   .\Create-AzDiagPolicy.ps1 -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ResourceType "Microsoft.Sql/servers/databases" -ResourceGroup "RGName" -ExportLA -ExportEH
   Take in parameters and execute silently without prompting against the scope of a resourceType, Resource Group, with a specified subscriptionID as scope
-
-.EXAMPLE
-  .\Create-AzDiagPolicy.ps1 -Dedicated -SubscriptionId "fd2323a9-2324-4d2a-90f6-7e6c2fe03512" -ResourceType "Microsoft.Sql/servers/databases" -ResourceGroup "RGName" -ExportLA -ExportEH
-  Same as above but will allow for dedicated table for Log Analytics specific policies exported (for those ResourceTypes that support it).  
-
-  Note: This is a blanket setting when used with a Policy Initiative Export.  The setting will only enabled dedicated support for those resourceTypes that support it.
-
+  
 .EXAMPLE
   .\Create-AzDiagPolicy.ps1 -ExportLA
   Will prompt for subscriptionID to leverage for analysis, prompt for which resourceTypes to export for policies, and export the policies specific
@@ -221,42 +198,7 @@ September 07, 2021 2.9
 
 .NOTES
    AUTHOR: Jim Britt Principal Program Manager - Azure CXP API (Azure Product Improvement) 
-   LASTEDIT: September 07, 2021 2.9
-     Minor Update
-    * Updated the API version for both below types.  This was recently caught with the help
-    of ARM TTK: https://github.com/Azure/arm-ttk indicating an old version of an API for Azure Policy
-    within the ARM template that is generated as part of this script. 
-
-    "type": "Microsoft.Authorization/policyDefinitions",
-    "apiVersion": "2020-09-01"
-
-    and 
-
-    "type": "Microsoft.Authorization/policySetDefinitions",
-    "apiVersion": "2020-09-01"
-
-    **NOTE**: Previous API version leveraged was 2019-09-01
-
-   May 05, 2021 2.8
-    Updates
-    * Adding the ability to leverage a dedicated table (instead of AzureDiagnostics) for resourceTypes that support it
-      Reference Link: https://docs.microsoft.com/en-us/azure/azure-monitor/essentials/resource-manager-diagnostic-settings#diagnostic-setting-for-recovery-services-vault
-
-      THANK YOU Eric Golpe (Principal Cloud Solution Architect) - Microsoft for leaning in and driving this change on behalf of a customer requirement.
-      
-      Note: Utilize -Dedicated switch to enable.  This will be a blanket configuration for all policies and will only enable for those resourceTypes that
-      support it.  Otherwise, the default will be AzureDiagnostics table
-
-   Feb 12, 2021 2.7
-    Minor updates
-    * Huge thanks to Panagiotis Tsoukias (https://github.com/ptsouk) Customer Engineer at Microsoft for fixing the following
-        * Fixed some missing logic for Management Groups in PolicyID logic
-    * Another huge thanks to Nikolay Sucheninov and the VIAcode team for fixing the following issues raised by ARM TTK
-        * Fixed schema URLs to use https
-        * Removed redundant dependsOn logic that was not necessary or even functional
-    *** Thank you for supporting the script and community effort around this solution - everyone benefits! ****
-
-   November 11, 2020 2.6
+   LASTEDIT: November 11, 2020 2.6
     Fixed more issues with REST API logic due to updates to Az cmdlets
     
    November 03, 2020 2.5
@@ -502,9 +444,6 @@ param
     # AllRegions switch to allow log Analytics to use all regions instead of being region sensitive
     [switch]$AllRegions=$False,
 
-    # Dedicated switch to allow log Analytics to use a dedicated table instead of AzureDiagnostics table (if supported)
-    [switch]$Dedicated=$False,
-
     # Add ResourceType to reduce scope to Resource Type instead of entire list of resources to scan
     [Parameter(ParameterSetName='Export')]
     [Parameter(ParameterSetName='Subscription')]
@@ -669,9 +608,7 @@ function Add-IndexNumberToArray (
 function New-LogArray
 (
      [Parameter(Mandatory=$True)]
-     [array]$logCategories,
-     [Parameter(Mandatory=$False)]
-     $Dedicated
+     [array]$logCategories
 )
 {
     $logsArray += '
@@ -686,11 +623,6 @@ function New-LogArray
         $logsArray = $logsArray.Substring(0,$logsArray.Length-1)
         $logsArray += '
                                                 ]'
-    if($Dedicated)
-    {
-        $logsArray += ',
-        "logAnalyticsDestinationType": "Dedicated"'
-    }
     $logsArray
 }
 
@@ -832,7 +764,7 @@ $JSONRULES = @'
                         "properties": {
                             "mode": "incremental",
                             "template": {
-                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
                                 "contentVersion": "1.0.0.0",
                                 "parameters": {
                                     "name": {
@@ -857,6 +789,7 @@ $JSONRULES = @'
                                         "type": "<RESOURCE TYPE>/providers/diagnosticSettings",
                                         "apiVersion": "2017-05-01-preview",
                                         "name": "[concat(parameters('name'), '/', 'Microsoft.Insights/', parameters('profileName'))]",                                        
+                                        "dependsOn": [],
                                         "properties": {
                                             "workspaceId": "[parameters('logAnalytics')]",<METRICS ARRAY><LOGS ARRAY>                                        
                                         }
@@ -988,7 +921,7 @@ $JSONRULES = @'
                         "properties": {
                             "mode": "incremental",
                             "template": {
-                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
                                 "contentVersion": "1.0.0.0",
                                 "parameters": {
                                     "name": {
@@ -1017,6 +950,7 @@ $JSONRULES = @'
                                         "apiVersion": "2017-05-01-preview",
                                         "name": "[concat(parameters('name'), '/', 'Microsoft.Insights/', parameters('profileName'))]",
                                         "location": "[parameters('location')]",
+                                        "dependsOn": [],
                                         "properties": {
                                             "workspaceId": "[parameters('logAnalytics')]",<METRICS ARRAY><LOGS ARRAY>                                        
                                         }
@@ -1336,7 +1270,7 @@ $JSONRULES = @'
                         "properties": {
                             "mode": "incremental",
                             "template": {
-                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
                                 "contentVersion": "1.0.0.0",
                                 "parameters": {
                                     "name": {
@@ -1368,6 +1302,7 @@ $JSONRULES = @'
                                         "apiVersion": "2017-05-01-preview",
                                         "name": "[concat(parameters('name'), '/', 'Microsoft.Insights/', parameters('profileName'))]",
                                         "location": "[parameters('location')]",
+                                        "dependsOn": [],
                                         "properties": {
                                             "eventHubName": "[last(split(parameters('eventHubName'), '/'))]",
                                             "eventHubAuthorizationRuleId": "[parameters('eventHubRuleId')]",<METRICS ARRAY><LOGS ARRAY>
@@ -1649,7 +1584,7 @@ $JSONRULES = @'
                         "properties": {
                             "mode": "incremental",
                             "template": {
-                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
                                 "contentVersion": "1.0.0.0",
                                 "parameters": {
                                     "name": {
@@ -1678,6 +1613,7 @@ $JSONRULES = @'
                                         "apiVersion": "2017-05-01-preview",
                                         "name": "[concat(parameters('name'), '/', 'Microsoft.Insights/', parameters('profileName'))]",
                                         "location": "[parameters('location')]",
+                                        "dependsOn": [],
                                         "properties": {
                                             "storageAccountId": "[parameters('storageAccountId')]",<METRICS ARRAY><LOGS ARRAY>
                                         }
@@ -1902,7 +1838,7 @@ function New-PolicyInitiative
         <AzurePolicyPropertyBag>
         {
             "type": "Microsoft.Authorization/policySetDefinitions",
-            "apiVersion": "2020-09-01",
+            "apiVersion": "2019-09-01",
             "name": "<AZURE DIAG INITIATIVE NAME>",
             "dependsOn": [
 <Policy INIT RESIDs>
@@ -2310,7 +2246,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
             if($Type.logs)
             {
                 $Logcategories = $Type.Categories
-                $logsArray = New-LogArray $Logcategories -Dedicated $Dedicated
+                $logsArray = New-LogArray $Logcategories
             }
             if($Type.metrics)
             {
@@ -2342,7 +2278,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
                     $JSONType = @'
 {
     "type": "Microsoft.Authorization/policyDefinitions",
-    "apiVersion": "2020-09-01",
+    "apiVersion": "2019-09-01",
     "name": "<SHORT NAME OF SERVICE>",
 
 '@
@@ -2425,20 +2361,11 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
                     $JSONType = @'
 {
     "type": "Microsoft.Authorization/policyDefinitions",
-    "apiVersion": "2020-09-01",
+    "apiVersion": "2019-09-01",
     "name": "<SHORT NAME OF SERVICE>",
 
 '@
-                    # If we are exporting for Management Group - update RSID to support management group navigation
-                    if($ManagementGroupDeployment)
-                    {
-                        $PolicyRSID = """[concat('/providers/Microsoft.Management/managementGroups/', parameters('TargetMGID'), '/providers/Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
-                    }
-                    # If not exporting for MG, leverage standard ResourceID
-                    else {
-                        $PolicyRSID = """[resourceId('Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
-                    }
-    
+                    $PolicyRSID = """[resourceId('Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
                     $PolicyRSIDs = $PolicyRSIDs + "                "  + $PolicyRSID + "," + "`r`n"
                     $JSONTYPE = $JSONType.replace("<SHORT NAME OF SERVICE>", "$($ShortNameRT)")
                     $PolicyJSON = Update-EventHubJSON -resourceType $Type.ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -JSONType $JSONType -ExportInitiative $ExportInitiative -kind $Type.Kind -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
@@ -2508,20 +2435,11 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
                     $JSONType = @'
 {
     "type": "Microsoft.Authorization/policyDefinitions",
-    "apiVersion": "2020-09-01",
+    "apiVersion": "2019-09-01",
     "name": "<SHORT NAME OF SERVICE>",
 
 '@
-                    # If we are exporting for Management Group - update RSID to support management group navigation
-                    if($ManagementGroupDeployment)
-                    {
-                        $PolicyRSID = """[concat('/providers/Microsoft.Management/managementGroups/', parameters('TargetMGID'), '/providers/Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
-                    }
-                    # If not exporting for MG, leverage standard ResourceID
-                    else {
-                        $PolicyRSID = """[resourceId('Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
-                    }
-
+                    $PolicyRSID = """[resourceId('Microsoft.Authorization/policyDefinitions/', '$($ShortNameRT)')]"""
                     $PolicyRSIDs = $PolicyRSIDs + "                "  + $PolicyRSID + "," + "`r`n"
                     $JSONTYPE = $JSONType.replace("<SHORT NAME OF SERVICE>", "$($ShortNameRT)")
                     $PolicyJSON = Update-StorageJSON -resourceType $Type.ResourceType -metricsArray $metricsArray -logsArray $logsArray -nameField $RPVar[1] -JSONType $JSONType -ExportInitiative $ExportInitiative -kind $Type.Kind -PolicyResourceDisplayName $PolicyResourceDisplayName -PolicyName $ShortNameRT
@@ -2580,7 +2498,7 @@ IF($($ExportEH) -or ($ExportLA) -or ($ExportStorage))
         if($DiagnosticCapable[$ResourceTypeToProcess -1].Logs)
         {
             $logcategories = $DiagnosticCapable[$ResourceTypeToProcess -1].Categories
-            $logsArray = New-LogArray $Logcategories -Dedicated $Dedicated
+            $logsArray = New-LogArray $Logcategories
         }
         else
         {
