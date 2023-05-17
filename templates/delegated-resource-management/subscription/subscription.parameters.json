@@ -3,34 +3,40 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "mspOfferName": {
-            "value": "Relecloud Managed Services"
+            "value": "Welcome Networks Managed Services"
         },
         "mspOfferDescription": {
-            "value": "Relecloud Managed Services"
+            "value": "Subcription Management by Welcome Networks"
         },
         "managedByTenantId": {
-            "value": "<insert managing tenant id>"
+            "value": "fd3f1215-fc18-4f80-9bdd-515e44321bd0"
         },
         "authorizations": {
             "value": [
                 { 
-                    "principalId": "00000000-0000-0000-0000-000000000000", 
-                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
-                    "principalIdDisplayName": "PIM_Group" 
+                    "principalId": "f40d329a-aa8f-4728-bcf0-108426c20bb0", 
+                    "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+                    "principalIdDisplayName": "Customer Subscription Manager" 
                 }, 
                 { 
-                    "principalId": "00000000-0000-0000-0000-000000000000", 
+                    "principalId": "f7d22e54-d1b7-42a1-a29c-90d28fd871b4", 
+                    "roleDefinitionId": "9980e02c-c2be-4d73-94e8-173b1dc7cf3c",
+                    "principalIdDisplayName": "Virtual Machine Contributor" 
+                }, 
+                { 
+                    "principalId": "f40d329a-aa8f-4728-bcf0-108426c20bb0", 
                     "roleDefinitionId": "91c1777a-f3dc-4fae-b103-61d183457e46",
-                    "principalIdDisplayName": "PIM_Group"
+                    "principalIdDisplayName": "Managed Services Registration assignment Delete Role"
                     
                 },
                 {
-                    "principalId": "00000000-0000-0000-0000-000000000000",
-                    "principalIdDisplayName": "PIM_Group",
+                    "principalId": "f40d329a-aa8f-4728-bcf0-108426c20bb0",
+                    "principalIdDisplayName": "Azure Admins",
                     "roleDefinitionId": "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
                     "delegatedRoleDefinitionIds": [
                         "b24988ac-6180-42a0-ab88-20f7382dd24c",
                         "92aaf0da-9dab-42b6-94a3-d43ce8d16293"
+                        "9980e02c-c2be-4d73-94e8-173b1dc7cf3c"
                     ]
                 }
                     ]
