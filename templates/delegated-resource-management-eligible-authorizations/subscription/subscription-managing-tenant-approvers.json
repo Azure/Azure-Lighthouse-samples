@@ -29,7 +29,7 @@
         "eligibleAuthorizations": {
             "type": "array",
             "metadata": {
-                "description": "Provide the auhtorizations that will have just-in-time role assignments on customer environments with support for approvals from the managing tenant"
+                "description": "Provide the authorizations that will have just-in-time role assignments on customer environments with support for approvals from the managing tenant"
             }
         }
     },
