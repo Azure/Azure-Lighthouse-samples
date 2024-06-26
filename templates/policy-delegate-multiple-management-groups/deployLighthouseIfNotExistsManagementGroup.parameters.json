@@ -1,0 +1,34 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "managedByName": {
+            "value": "Relecloud Managed Services"
+        },
+        "managedByDescription": {
+            "value": "This is the ultimate MSP"
+        },
+        "managedByTenantId": {
+            "value": "00000000-0000-0000-0000-000000000000"
+        },
+        "managedByAuthorizations": {
+            "value": [
+                {
+                    "principalId": "00000000-0000-0000-0000-000000000000",
+                    "principalIdDisplayName": "Tier 1 Support",
+                    "roleDefinitionId": "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+                },
+                {
+                    "principalId": "00000000-0000-0000-0000-000000000000",
+                    "principalIdDisplayName": "Automation Account - Full access",
+                    "roleDefinitionId": "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
+                    "delegatedRoleDefinitionIds": [
+                        "b24988ac-6180-42a0-ab88-20f7382dd24c",
+                        "92aaf0da-9dab-42b6-94a3-d43ce8d16293",
+                        "91c1777a-f3dc-4fae-b103-61d183457e46"
+                    ]
+                }                
+            ]
+        }
+    }
+}
