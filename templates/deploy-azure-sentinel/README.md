@@ -1,3 +1,3 @@
-# Deploy Azure Sentinel
+# Deploy Microsoft Sentinel
 
-This template deploys and enable Azure Sentinel on an existing Log Analytics workspace
+This template deploys and enables Microsoft Sentinel on an existing Log Analytics workspace.
