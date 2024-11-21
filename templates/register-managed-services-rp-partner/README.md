@@ -52,6 +52,11 @@ where:
 * `{client-id}` is the application's client ID (that you retrived above).
 * `{tenant-id}` is your managed tenant ID 
 
+Whoever accesses this URL needs to be an admin of managed Entra ID tenant. 
+
+It may be that you are redirected to a page saying "Sorry, but we’re having trouble signing you in. AADSTS500113: No reply address is registered for the application", **please ignore this message**. 
+
+After consenting admin access and ignoring the error stated above, you should go to _Enterprise Applications_ on the managed Entra ID tenant to double check that you have this new app there.
 
 Now, that the app exists in each customer tenant, you need to give it permissions to be able to register the service provider in all subscriptions of those tenant. 
 
